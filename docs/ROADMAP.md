@@ -80,8 +80,9 @@ Build order follows the spec. Each phase depends on the previous.
   the phone number, dates, timestamps, reactions and attachment placeholders
   (`CopyFormatOptions`); the number is confined to the header line, and reactions
   are attributed to the reactor rather than always to the contact
-- ~~Rendered image export / `ExportBottomSheet`~~ — built July 23, **removed July 29 by
-  owner decision** (screenshots cover it); selection top bar is a direct Copy action again
+- ~~Rendered image export / `ExportBottomSheet`~~ — built July 23, **removed August 3 by
+  owner decision** (commit `dd1dee3`; screenshots cover it); selection top bar is a
+  direct Copy action again
 - [ ] AI Export as distinct format option (same as Copy but labelled separately)
 
 ---
@@ -132,7 +133,9 @@ Build order follows the spec. Each phase depends on the previous.
 - [x] `SearchScreen` with debounced query input
 - [x] Filter chips: Sent / Received / Reactions
 - [x] Query highlighting in results (`buildAnnotatedString`)
-- [x] **Date range filter** — date picker chips for start/end
+- [x] **Date range filter** — date picker chips for start/end. Rewritten Sept 20 2026:
+      the old `DateRangeSheet` bottom sheet fought the sheet's own drag gesture, so it is
+      now a paged `DateRangePickerDialog` that swipes sideways a month at a time
 - [x] **Thread filter chip** — opens thread picker bottom sheet
 - [x] **Reaction filter** — emoji picker; tapping emoji filters to messages that received that reaction
 - [x] Tapping result navigates to that exact message in `ThreadScreen` (scroll-to + highlight)
@@ -156,6 +159,32 @@ Build order follows the spec. Each phase depends on the previous.
 ## Phase 8 — Automatic Backups ✅ Done (core)
 
 See Phase 3 above for remaining items.
+
+---
+
+## Phase 10 — Conversation Management ✅ Done (July 2026), 🚧 device verification pending
+
+Added to this roadmap 2026-09-23 — all of it shipped in July 2026 and none of it had a
+phase here. `docs/TODO.md` is the authority on the remaining verification gates.
+
+- [x] **Block numbers** — from the thread and in bulk from conversation-list selection;
+      `BlockedNumbersRepository`, `BlockedNumbersScreen`
+- [x] **Spam folder** — suspected spam filed separately rather than deleted;
+      `SpamHeuristics`, `SpamSuspicionRepository`, `SpamScreen`, `ReportSpamReceiver`.
+      Required for the Play Store messaging category
+- [x] **Schedule send** — `scheduled_messages` table (schema v23), `ScheduledSendWorker`.
+      Deliberately not a column on `messages`, so an unsent scheduled text can never leak
+      into sync dedup, stats, search, or backup before it fires
+- [x] **Message reminders** — `remindAt` (schema v22), `MessageReminderWorker`, `ReminderTimes`
+- [x] **Delivery timestamps + Message info panel** — `sentAt`/`deliveredAt` (schema v21)
+- [x] **Pinned messages** and pinned threads — `isPinned` on both tables
+- [x] **Forward a message** to another conversation — `ForwardPickerScreen`
+- [x] **Starred images gallery** — `StarredImagesScreen`
+- [x] **Per-thread notification settings** — `NotificationSettingsScreen`
+- [x] **Contact media gallery** — photos, videos, and links per contact
+- [x] **About / Licenses screen** and the MIT relicense (Aug–Sept 2026)
+- [ ] On-device verification of the above — see `docs/TODO.md`; several are implemented
+      but still flagged "needs on-device verification"
 
 ---
 

@@ -108,7 +108,10 @@ fun DateRangePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(rangeHeadline(range, locale)) },
+        // minLines = 2 so the one-line "Select a start date" state reserves the same
+        // height as the two-line states below it. Without it the dialog resizes under
+        // the user's finger as the range fills in.
+        title = { Text(rangeHeadline(range, locale), minLines = 2) },
         text = {
             // Every cell is a square a seventh of the dialog's width, and the body is six
             // of those tall — so the day circles stay round and the height never depends on
@@ -182,11 +185,19 @@ fun DateRangePickerDialog(
     )
 }
 
-/** "Select a start date" / "May 1 – May 3, 2026" — what the picked range currently is. */
+/**
+ * "Select a start date" / "May 1, 2026 –\nMay 3, 2026" — what the picked range currently is.
+ *
+ * The end segment always starts on its own line. A date and the words "select an end date"
+ * are different lengths, so letting them wrap naturally made the title one line in some
+ * states and two in others, and the dialog jumped height as the range filled in. Breaking
+ * deliberately costs nothing and keeps every state the same height (with minLines = 2 at
+ * the call site covering the start-only state).
+ */
 private fun rangeHeadline(range: DayRange, locale: Locale): String {
     val start = range.start ?: return "Select a start date"
-    val end = range.end ?: return "${formatDay(start, locale)} – select an end date"
-    return "${formatDay(start, locale)} – ${formatDay(end, locale)}"
+    val end = range.end ?: return "${formatDay(start, locale)} –\nselect an end date"
+    return "${formatDay(start, locale)} –\n${formatDay(end, locale)}"
 }
 
 private fun formatDay(day: LocalDate, locale: Locale): String =

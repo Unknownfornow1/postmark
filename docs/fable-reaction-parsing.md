@@ -1,5 +1,9 @@
 # Reaction parsing failures — root causes and fixes (July 22, 2026)
 
+> **Fixes 1–4 all shipped; retained for the one open limitation.** The removal shape for
+> a bare-emoji reaction on a caption-less media message is still uncaptured — tracked in
+> `docs/TODO.md` and needs a device to resolve.
+
 Branch: `feat/reaction-parsing-fixes`. Companion UI change (pills below the
 bubble) on `feat/reaction-pill-placement`.
 

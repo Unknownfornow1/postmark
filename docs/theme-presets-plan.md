@@ -1,5 +1,10 @@
 # Theme Presets & Sharing — Design + Plan
 
+> **Live document — P1/P2 shipped July 18 2026, P3–P5 are still unbuilt.** The
+> `.postmarktheme` share/import format below is a design on paper, not code. As of
+> 2026-09-23 these are mirrored into `docs/TODO.md` under "Personalization — remaining";
+> keep the two in step.
+
 **Date:** 2026-07-18 · **Branch:** `feat/theme-presets` (stacked on `fix/fable-round4`)
 **Vision (Chris):** curated color-combo presets now; eventually a place where people
 share/download presets ("market"). Build with that end state in mind from day one.

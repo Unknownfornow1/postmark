@@ -1,6 +1,6 @@
 ═══════════════════════════════════════════════════════
 POSTMARK — PROJECT BRIEFING
-Last updated: September 17, 2026
+Last updated: September 23, 2026
 ═══════════════════════════════════════════════════════
 Android SMS app. Kotlin + Jetpack Compose.
 Package: com.plusorminustwo.postmark
@@ -134,7 +134,9 @@ violated). Stats are now always computed live — see StatsAlgorithms.kt.
 
 FTS4 virtual table (messages_fts)
 - mirrors message body, sync triggers in place
-- tokenize='unicode61'
+- no explicit tokenizer: MessageFtsEntity declares a bare @Fts4, so the
+  DDL is USING FTS4(`body` TEXT NOT NULL) and SQLite's default 'simple'
+  tokenizer applies (23.json confirms this)
 
 Reactions in separate table for independent
 emoji reaction querying.
@@ -447,8 +449,10 @@ WHAT IS WORKING (tested on device)
      optimistic row to real row before deleting it (race condition fix)
    - ThreadViewModel marks optimistic row as FAILED immediately on local send failure
    - SMS/MMS type label dimmed next to timestamp in each bubble
-   ⚠️ Known gap: EXIF orientation stripped by compressImage() — camera photos arrive
-     rotated 90° on recipient devices. Requires androidx.exifinterface (separate PR).
+   (A former gap here — EXIF orientation stripped by compressImage(), so camera
+     photos arrived rotated 90° — was fixed in 0f3b71f, June 14 2026:
+     compressImage() reads ExifInterface rotationDegrees before decoding and
+     applies a matching Matrix.postRotate.)
 
 ✅ MMS PDU WAP Binary encoding audit (Fable 5, June 2026):
    - Bug 1 (critical): spurious 0x84 field-code byte in every part Content-Type header
@@ -572,16 +576,26 @@ WHAT IS WORKING (tested on device)
       already imported under the wrong thread). Decision logic extracted to pure
       fun mmsThreadIdNeedsRepair() (SentRowRepairTest).
    Repair is insert/update only — nothing is ever deleted from the providers.
-✅ CI: Firebase App Distribution on every push (July 5, 2026) — same pattern as ShaftSchematic:
-   .github/workflows/distribute.yml builds assembleDebug and uploads to Firebase App
-   Distribution (tester: chrisjmendoza@gmail.com) on push to master, fix/**, feat/**,
-   or manual dispatch. Signed with the already-committed app/debug.keystore so every
+✅ CI — two workflows (see .github/workflows/; undated on purpose, these drift):
+   distribute.yml — runs ./gradlew test, then builds assembleStaging (minified,
+   non-debuggable; it was assembleDebug until the staging switch on July 16 2026)
+   and uploads app-staging.apk to Firebase App Distribution
+   (tester: chrisjmendoza@gmail.com) on push to master, fix/**, feat/**,
+   or manual dispatch.
+   instrumented.yml — "Instrumented Tests": boots an API 34 x86_64 emulator on
+   ubuntu-latest (KVM enabled) and runs connectedDebugAndroidTest — all 67
+   instrumented tests — on every push to master plus manual dispatch. Reports
+   upload as an artifact on failure. It was red from 2026-07-24 to 2026-09-21
+   on three broken test seeds, not on anything in the app; see the changelog. Signed with the already-committed app/debug.keystore so every
    machine (dev or CI) produces the same signing cert — installs update in place
    instead of requiring an uninstall first.
    app/build.gradle.kts: versionCode/versionName were static (1 / "1.0"), which
    Firebase App Distribution treats as a duplicate upload and silently drops after
    the first release. Both are now derived from `git rev-list --count HEAD`
-   (versionCode = gitCount, versionName = "1.0.$gitCount"), plus a GIT_SHA
+   (versionCode = gitCount * 100_000 + ciRunNumber, where ciRunNumber is
+   GITHUB_RUN_NUMBER — it tiebreaks the same commit built twice, e.g. a feature
+   branch push followed by its merge to master; versionName = "1.0.$gitCount"),
+   plus a GIT_SHA
    BuildConfig field for identifying exactly which commit is installed on-device.
    Unlike ShaftSchematic's workflow, the checkout step here uses fetch-depth: 0 —
    without it, GitHub Actions' default shallow clone makes `git rev-list --count`
@@ -1420,7 +1434,8 @@ TESTING CONVENTIONS
 - Gradle build + unit tests run after every implementation
   session.
 - Test files — historical snapshot below is from 2026-05-05 (26 classes);
-  104 test classes exist as of 2026-09-17 (1184 tests passing). Trust the
+  104 test classes exist as of 2026-09-23 (1184 tests passing, counted from
+  the JUnit XML — a raw grep for @Test undercounts by 15). Trust the
   src/test + src/androidTest tree and docs/CHANGELOG.md over this list:
     src/test/.../data/sync/StatsAlgorithmsTest.kt
     src/test/.../data/sync/StatsComputationTest.kt

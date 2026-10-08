@@ -1,4 +1,12 @@
 # MMS System Audit — Postmark
+> **Still the project's working MMS reference.** First written June 14 2026, but
+> maintained in place since: the priority table in §7 carries live `[x]`/`[ ]` state
+> and several sections have dated "Update" paragraphs. Re-audited 2026-09-23 — the
+> open items are #8 (manual PDU construction, accepted by design), #10
+> (`RcsArchivalReceiver` action string, still unverified on-device) and #12
+> (AMR/3GPP voice-memo playback, still unverified on-device). Judge it by §7, not
+> by the date below.
+
 **Date:** June 14, 2026  
 **Method:** Full codebase read (all MMS source files) + Android documentation review  
 **Scope:** Sending, receiving, sync, display, data model, test coverage

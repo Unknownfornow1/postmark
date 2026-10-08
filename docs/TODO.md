@@ -934,6 +934,27 @@ Ordered by priority tier. Work top-to-bottom within each tier.
 > (render-state memoization, markAllRead/FTS-trigger fix, schema v16 indexes,
 > catch-up poll off Main, video thumbnail cache, and more). The items below are
 > kept for continuity but the new doc supersedes them.
+
+**Still open in performance-analysis.md, mirrored here so they are findable**
+(audited 2026-09-23 — none of these have been done):
+- [ ] **Baseline profile module** (Tier 1 #4) — no `:baselineprofile` module exists;
+      `settings.gradle.kts` includes `:app` only.
+- [ ] **Coalesce sync writes into one transaction** (Tier 2 #6) — no `TransactionRunner`
+      or equivalent exists.
+- [ ] **Reaction resolution should use a window query** (Tier 2 #9) instead of the
+      current per-message lookup.
+- [ ] **Drain `SyncLogger` asynchronously** (Tier 2 #11) — currently writes inline.
+- [ ] **`SubcomposeAsyncImage` → `AsyncImage`** (Tier 2 #12) and **fixed-size image
+      placeholders** (#13) — both avoid a subcomposition per image.
+- [ ] **Migrate to `coil-video`** (Tier 2 #14) for video thumbnails — dependency not
+      present; coil is pinned at 2.7.0.
+- [ ] **Compose compiler metrics reports** (Tier 4 #23) to find unstable parameters.
+- [ ] **Bump the Compose BOM** (Tier 4 #26) — still pinned at `2025.01.00` in
+      `gradle/libs.versions.toml`, now well over a year old. Bundles performance work
+      the app is not getting.
+- [ ] **Trim `material-icons-extended`** (Tier 4 #27) — pulled in whole for a handful
+      of icons.
+- [ ] **Raise the Gradle heap** (Tier 4 #28) for build throughput.
 - [x] **Heatmap query performance** — with 150k+ messages the heatmap was slow to load and
       unresponsive on month navigation. ~~Option (a) pre-compute in ThreadStatsEntity~~
       (obsolete — stats tables deleted at v15). The `messages(threadId, timestamp)` index
@@ -969,7 +990,7 @@ Ordered by priority tier. Work top-to-bottom within each tier.
 
 ### Export — image rendering
 - ~~Image export / "Share as image"~~ — built July 23 (`feat/image-export`),
-  **removed July 29 by owner decision**: screenshots already cover the
+  **removed August 3 by owner decision** (commit `dd1dee3`): screenshots already cover the
   share-a-conversation use case. The selection top bar is back to a direct
   Copy action (`ContentCopy` icon). Deleted `ui/export/ExportBottomSheet.kt`,
   `domain/export/ImageExportPlan.kt`, `service/export/ImageExportRenderer.kt`
@@ -1693,6 +1714,25 @@ slot in as toggles/rows on that screen.
 
 ---
 
+### Personalization — remaining
+> Spec and file format already written: `docs/theme-presets-plan.md`. P1 (the
+> `ThemePresets` catalog + codec) and P2 (the apply UI in `ContactDetailScreen`)
+> shipped July 18 2026; P3–P5 below were designed and never built. Mirrored here
+> 2026-09-23 because nothing in this backlog referenced them.
+- [ ] **Theme preset share / import (P3)** — export a thread's look as a
+      `.postmarktheme` file via the share sheet; import via file-open → preview →
+      apply or save. Needs a "My presets" store for user-saved bundles alongside
+      the built-ins. The JSON format and codec already exist and round-trip in tests.
+- [ ] **Global apply (P4)** — blocked on a design decision: there is no global
+      default bubble-pair preference today, only the app accent, which paints sent
+      bubbles globally. Decide what "apply to everything" should mean first.
+- [ ] **Community gallery (P5)** — a static web home for `.postmarktheme` files,
+      outside the app. Zero app changes beyond P3.
+- [ ] **Visual pass over every preset** in light + dark, both bubble styles, with
+      screenshots — needs emulator or device access.
+
+---
+
 ## 🔵 TIER 4 — Infrastructure / Housekeeping
 
 ### CI and test hygiene
@@ -1832,6 +1872,20 @@ slot in as toggles/rows on that screen.
       reaches the button, top-bar titles ellipsize instead of wrapping.
 - [ ] **RTL layout support** — mirror layout for Arabic/Hebrew users.
       Test with device set to Arabic locale.
+
+### Owner decisions (not code — see `docs/OWNER-ACTIONS.md` for the full writeup)
+> Re-verified 2026-09-23: all three are still open, with no commits addressing any
+> of them. Listed here because the live backlog never pointed at them.
+- [ ] **Backup encryption** — backups and exports are plaintext zips today, on an
+      app whose pitch is privacy and data ownership. The v2 manifest already reserves
+      an `encryption` field, so this is not a format break. Recommendation in
+      OWNER-ACTIONS is optional, opt-in, passphrase-derived AES-GCM. Needs a go/no-go.
+- [ ] **Release-signed tester builds** — testers install a build signed with the
+      **publicly committed** `debug.keystore`. `app/build.gradle.kts` still has no
+      `signingConfigs.release`. Needs a keystore plus repo secrets.
+- [ ] **"Postmark" trademark collision** — unresolved against the established
+      Postmark email-delivery service. Flagged as blocking further branding and icon
+      investment, so it gates the "Real app icon" item above.
 
 ### Play Store prep (when ready)
 - [ ] **Privacy policy** — required for any app requesting SMS

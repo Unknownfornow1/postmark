@@ -1,5 +1,9 @@
 # Postmark — Performance Analysis
 
+> **Live backlog — Tier 1 mostly done, Tier 2/4 mostly not.** The 21 quick wins and
+> Tier 1 #1/#2/#5 shipped July 15 2026. As of 2026-09-23 the still-open items are
+> mirrored into `docs/TODO.md` under "Performance & optimization"; keep the two in step.
+
 **Date:** July 15, 2026 · **Branch:** `fix/fable-critical` · **Model:** Fable 5
 
 ## Method

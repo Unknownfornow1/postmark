@@ -95,8 +95,11 @@ foregrounds the app.
   confirm whether any change is warranted at all.
 
 **G2 — 16 KB page-size alignment of media3 native libraries (severity: MEDIUM, Play-blocking; APK-inspectable).**
-Play requires 16 KB-aligned native code for apps targeting 35 (deadline extended
-to May 31, 2026). The app's only native code comes from media3 1.5.1
+Play requires 16 KB-aligned native code for apps targeting 35. **That deadline — May 31,
+2026 — passed almost four months ago (re-checked 2026-09-23).** Nothing is blocked
+today only because the app has never been submitted to Play; this is now an overdue
+prerequisite for submission rather than a routine pre-launch check, and there is still
+no record of anyone having run the alignment check. media3 is still pinned at 1.5.1. The app's only native code comes from media3 1.5.1
 (exoplayer/ui/transformer/effect). Room here uses framework SQLite (no bundled
 native lib), Coil is pure-Kotlin — media3 is the sole `.so` source.
 - *Recommendation:* build the release/staging AAB and check `.so` alignment (e.g.

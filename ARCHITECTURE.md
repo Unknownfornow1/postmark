@@ -255,7 +255,7 @@ and never depended on those tables.
 | Decision | Rationale |
 |----------|-----------|
 | Own Room DB instead of querying system provider directly | System provider has no FTS, no reactions, no backup policy, unpredictable performance |
-| FTS4 standalone (not content table) | Avoids KSP cross-reference bug in Room 2.6.1 with `@Fts5`; triggers provide equivalent sync |
+| FTS4 standalone (not content table) | Chosen to avoid a KSP cross-reference bug hit with `@Fts5` on Room 2.6.1, the version in use at the time; triggers provide equivalent sync. The app is on Room 2.7.2 now and the choice has not been revisited |
 | Reactions as a separate table | Independently queryable by emoji; not a column that would need JSON parsing at query time |
 | Stats computed live from `messages`/`reactions` (no stats table) | The screen always computed live; the parallel persisted tables were write-only dead weight and a full-scan cost on every sync — removed in v15 |
 | Word-prefix FTS (`"term*"`, star inside the quotes) not substring | Less noise; users find it more predictable than mid-word matches. See **Search** above — FTS4 silently drops a star outside the quotes |

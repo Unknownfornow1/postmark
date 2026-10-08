@@ -1,5 +1,11 @@
 # Postmark — Fable Multi-Persona Analysis
 
+> **Historical review, kept for its three unresolved items.** Audited 2026-09-23: the
+> 🔴/🟡/🟢/🔵 tiers are otherwise closed. What is still open here — backup
+> encryption (#13), release-signed tester builds (#14) and the "Postmark" trademark
+> collision (#30) — is written up properly in `docs/OWNER-ACTIONS.md` and now mirrored
+> into `docs/TODO.md`. Read those first; this doc is the origin, not the tracker.
+
 **Date:** July 10, 2026 · **Branch reviewed:** `feat/image-viewer-actions` · **Model:** Fable 5
 
 ## Method
@@ -63,7 +69,7 @@ Organized like `docs/TODO.md`'s own tiering, so it can be merged directly.
 > is missing, so every CI distribution since ~July 6 failed at upload — needs a new
 > service-account key set via `gh secret set FIREBASE_SERVICE_ACCOUNT`.
 >
-> **July 18 batch (branch `fix/fable-round4`, see `docs/fable-round4.md`):** #25, #28
+> **July 18 batch (branch `fix/fable-round4`):** #25, #28
 > (local half), and #31 closed, plus three *unnumbered* end-user findings: notification
 > tap now deep-links to the thread (and a latent shared-requestCode PendingIntent
 > collision was fixed with it), RCS fallback is disclosed in onboarding/Settings, and
@@ -105,7 +111,16 @@ Organized like `docs/TODO.md`'s own tiering, so it can be merged directly.
 - [x] 25. Add a one-time coach mark for swipe-to-reply / long-press-for-reactions / pinch-to-zoom-text — currently zero in-app discovery path for the app's best gestures. *Done July 18 (`fix/fable-round4`) — one-time dismissible tips card above the thread composer (gated on the thread having messages), a conversations-list hint for the new long-press multi-select, and a first-reaction "reactions stay on your phone" notice (the end-user review's "reactions go nowhere" dealbreaker, disclosed honestly), all backed by a shared `GestureHintsRepository`. Pinch-to-zoom itself was fixed the same day first — it had never actually worked (the list's scroll consumed the gesture before `detectTransformGestures` saw it; re-done via the image viewer's Initial-pass pointer-count arbitration), so the coach mark now advertises a real gesture. Needs on-device verification.*
 - [x] 26. Deduplicate ~~`lookupContactName` (4+ copies)~~ and ~~`isDefaultSmsApp()` (2 copies)~~ into shared extension functions. *`lookupContactName` done July 11 (5 copies → `data/contacts/ContactNameLookup.kt`); `isDefaultSmsApp()` done July 14 (3 copies → `util/DefaultSmsApp.kt`, unified on the robust RoleManager-or-package-match semantics; `ConversationsViewModel`/`SettingsScreen`/`ThreadViewModel` now call the shared extension).*
 - [x] 27. Delete dead DAO methods, `StatsAlgorithms.last56DayLabels()`, and the unused `SmsContentObserver.unregister()`; fix `getLatestNonReactionForThread`'s misleading name. *Done July 14 — removed three genuinely-dead `MessageDao` queries (`getLatestForThread` duplicate, `getLatestNForThread`, `getLatestBeforeForThread`) plus their 5 test-fake overrides each; deleted `last56DayLabels()` (unused, DST-broken) and `SmsContentObserver.unregister()` (no callers); renamed the misnamed `getLatestNonReactionForThread` → `getLatestForThread` (identical query, no reaction filter). Re-verified usage against current code rather than the July-10 counts.*
-- [x] 28. Clean up the ten already-merged local/remote branches; ~~convert CLAUDE.md to UTF-8~~. *CLAUDE.md converted July 11; 11 merged local branches deleted July 18. Remote deletion was blocked by the shell-permission classifier — the ready-to-run `git push origin --delete …` command is in `docs/fable-round4.md` for the owner.*
+- [x] 28. Clean up the ten already-merged local/remote branches; ~~convert CLAUDE.md to UTF-8~~. *CLAUDE.md converted July 11; 11 merged local branches deleted July 18. Remote deletion was never done. Re-checked 2026-09-23 — three merged remote branches are still on origin and safe to delete:*
+
+      ```
+      git push origin --delete feat/paged-date-range-picker fix/copy-format-options refactor/code-review-findings
+      ```
+
+      *Six others are unmerged and are a separate judgement call, not cleanup:
+      `add-claude-github-actions-1783819263346`, `copilot/add-global-delete-text-messages`,
+      `copilot/fix-date-selection-scrolling-issue`, `copilot/parse-reaction-fallbacks-android-apple`,
+      `feat/ui-improvements`, `test/mms-bare-bones`.*
 - [x] 29. Delete the ~100 lines of duplicated sample data between `ConversationsViewModel` and `DevOptionsViewModel`; move "Load sample data" out of the production empty state. *Done July 14 — deleted `ConversationsViewModel.loadSampleData()` (+ its `msg()` helper, ~115 lines) and removed the "Load sample data" button from the production empty state in `ConversationsScreen`; `DevOptionsViewModel` keeps the single remaining copy behind Dev Options. Orphaned imports cleaned up.*
 - [ ] 30. Resolve the "Postmark" trademark collision with the established Postmark email-delivery service before committing further to branding/icon work.
 

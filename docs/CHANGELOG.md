@@ -4,6 +4,122 @@ Newest entries on top. Each day is a journal of work completed.
 
 ---
 
+## 2026-09-23 (fix/date-picker-title-height) — date range picker: dialog no longer resizes as you pick
+
+1184 tests passing (unchanged).
+
+**Found on device.** Picking a range made the dialog jump height twice. The title is one
+line for "Select a start date", wraps to two for "Sep 1, 2026 – select an end date", then
+collapses back to one for "Sep 1, 2026 – Sep 23, 2026" — so the whole dialog grew and
+shrank under the user's finger mid-interaction.
+
+- **The end segment now always starts on its own line.** A date and the words "select an
+  end date" are different lengths, so letting the title wrap naturally was always going to
+  give different heights in different states. `rangeHeadline` breaks deliberately instead.
+- **`minLines = 2` on the title** covers the remaining case — "Select a start date", before
+  a start is picked, is genuinely one line and now reserves the same height as the rest.
+- No hardcoded heights: the title reserves two lines of whatever the type scale gives it,
+  same as the body already reserves six week rows.
+
+---
+
+## 2026-09-23 (docs/sweep) — full documentation audit: 30 docs checked against the code, 5 deleted
+
+1184 unit tests passing (unchanged). Documentation and one test-file encoding fix; no
+app code touched.
+
+**Every markdown doc in the repo was audited against the actual code**, not against
+other docs. Six parallel auditors covered README/ARCHITECTURE/AGENTS, BRIEFING, TODO's
+checkboxes, the owner/product docs, the older spec and plan docs, and cross-document
+consistency. Findings were verified before acting on any of them — two auditors
+disagreed about the unit test count and both were resolved against the JUnit XML.
+
+**Corrected — claims that were simply wrong**
+
+- **`WRITE_EXTERNAL_STORAGE` was described as the backup permission** in README's
+  permissions table. It isn't: backups go to app-specific external storage, which needs
+  no permission on API 26+. The permission exists only to save an MMS image to the
+  public gallery on Android 8–9, which is what the manifest's own comment says.
+- **BRIEFING claimed the FTS table uses `tokenize='unicode61'`.** `MessageFtsEntity` is
+  a bare `@Fts4` with no tokenizer argument, so the real DDL is
+  `USING FTS4(body TEXT NOT NULL)` and SQLite's default `simple` tokenizer applies.
+- **BRIEFING's CI section described a build that stopped existing in July.** It said
+  `distribute.yml` builds `assembleDebug`; it has built the minified, non-debuggable
+  `assembleStaging` since 2026-07-16. It also gave `versionCode = gitCount`, omitting the
+  `* 100_000 + ciRunNumber` tiebreaker that exists because the same commit built twice
+  once collided. And it never mentioned `instrumented.yml` at all — the second CI
+  workflow, whose two-month red run is the entry directly below this one.
+- **BRIEFING carried a "Known gap" for EXIF orientation** that was fixed in `0f3b71f` on
+  2026-06-14. `compressImage()` has read `ExifInterface.rotationDegrees` and applied a
+  matching `Matrix.postRotate` for three months.
+- **The image-export removal was dated July 29 in three places** (ROADMAP, VISION,
+  TODO). The revert commit `dd1dee3` is dated 2026-08-03.
+- **The date-range picker changelog entry was dated 2026-09-17**; its commits `d55ab96`
+  and `a40a8bd` are both dated 2026-09-20.
+- **VISION said per-thread appearance was "already 60% built."** It shipped — accent
+  colors, chat backgrounds with a placement editor, bubble styles and theme presets are
+  all live. What actually remains is preset *sharing*.
+- **`SMS_ANDROID_API_REFERENCE.md` §11 claimed `thread_id` is "not currently set on
+  insert."** `SmsManagerWrapper` sets it via `Telephony.Threads.getOrCreateThreadId()`
+  on every insert. That whole gap analysis is May-vintage and now carries a warning
+  header; §§1–10, the actual Android API reference, are still correct for targetSdk 35.
+- **`TARGET_SDK_REVIEW.md` framed the Play 16 KB page-size deadline as upcoming.** It
+  passed on 2026-05-31, nearly four months ago. Nothing is blocked only because the app
+  has never been submitted, and the alignment check still has no record of being run.
+- **ARCHITECTURE cited Room 2.6.1 in the present tense** for the FTS4-over-FTS5
+  decision; the app is on 2.7.2 and the choice hasn't been revisited.
+
+**Added — work that shipped but appeared in no document**
+
+- **README gained a Conversation Management section.** Schedule send, message reminders,
+  pinned messages, forwarding, the starred-images gallery, blocking, the spam folder and
+  per-thread notification settings were all shipped, wired-up screens with no entry in
+  the feature list. ROADMAP gained a matching Phase 10 — it had no phase for any of them,
+  including blocking and spam, which TODO calls a Play Store category requirement.
+- **README's documentation index listed 7 of 30 docs.** It now covers the set.
+- **TODO gained three things it never tracked**: the still-open Tier 2/4 performance
+  backlog from `performance-analysis.md` (ten items, including a Compose BOM still
+  pinned at `2025.01.00`); theme preset sharing, whose `.postmarktheme` format was fully
+  designed in `docs/theme-presets-plan.md` and never built; and a pointer to the three
+  owner decisions in `OWNER-ACTIONS.md` — backup encryption, release signing, and the
+  "Postmark" trademark collision — all three re-verified as still open.
+- **The Play listing draft** was missing scheduled send, reminders, and the contact
+  media gallery.
+
+**Deleted — 5 documents, all superseded**
+
+`docs/SMS_RESEARCH.md` (a redirect stub that had declared itself dead since May),
+`docs/customization-plan.md` (983 lines of implementation record for fully-shipped work,
+with file:line pointers that have since drifted), `docs/fable-round4.md`,
+`docs/fable-mms-sent-persist-spec.md` and `docs/fable-waveform-spec.md` (completed
+implementation records, all absorbed elsewhere). None had an inbound reference. The one
+actionable item buried in `fable-round4.md` — stale remote branches — was written out
+inline in `fable-analysis.md` first, with the three merged branches named.
+
+Eight retained historical docs gained a status header saying what shipped and what is
+still open, so none of them can be mistaken for current intent again.
+`NIGHTRUN_REPORT_2026-07-24.md` moved to `docs/history/`. (`DAYRUN_REPORT_2026-07-23.md`
+is gitignored and was left alone — that asymmetry is probably an oversight worth a look.)
+
+**One code change, for a documentation reason.** `ReadableExportTest.kt` contained a raw
+NUL byte inside a string literal, deliberately, to test filename sanitization. It made
+git and grep treat the file as binary, so every `@Test` count taken with grep came back
+15 short — which is exactly why two auditors reported 1169 tests against the documented
+1184. The byte is now the equivalent Kotlin escape `\u0000`; the test asserts the same
+thing, and tooling now agrees with the JUnit XML at 1184.
+
+**Schema.** Audited alongside the docs and found sound: all 22 migrations match the diffs
+between consecutive exported schemas, the v15→16 index swap is correct, and regenerating
+via KSP produces no change, so the exported schema is in sync with the entities. The one
+real defect is the `NOT NULL DEFAULT` drift noted in the entry below — which affects 10
+live columns across `messages` and `threads`, not the 2 first identified. Left as-is by
+decision: normalizing it means a v24 rebuild of both tables around three FTS triggers and
+five indices, on live message history, for no runtime change. The convention going
+forward is that a new NOT NULL column declares its default on the entity *and* in the
+migration, so no further drift accumulates.
+
+---
+
 ## 2026-09-21 (fix/migration-test-inserts) — instrumented CI green again: three migration tests seeded a row the schema rejects
 
 1184 unit tests passing (unchanged — this fix touches instrumented tests only).
@@ -65,7 +181,7 @@ schema and changes what validation accepts.
 
 ---
 
-## 2026-09-17 (feat/paged-date-range-picker) — date range picker: swipe months instead of scrolling years
+## 2026-09-20 (feat/paged-date-range-picker) — date range picker: swipe months instead of scrolling years
 
 1184 tests passing (+22 new, 1 new test class).
 

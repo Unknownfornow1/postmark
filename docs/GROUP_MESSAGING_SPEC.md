@@ -1,5 +1,9 @@
 # Group Messaging — Completion Spec
 
+> **All phases implemented (July 19 2026).** Retained as the implementation record and
+> for the on-device verification gates in §1.6/§2.4/§5, which are still the only
+> unchecked boxes. Re-audited 2026-09-23.
+
 **Date:** July 19, 2026
 **Author:** Fable 5 (analysis/spec only — implementation delegated per model-usage policy)
 **Prerequisite reading:** `docs/MMS_AUDIT.md` §1.4, §2.3; `docs/TODO.md` "Group MMS" items
