@@ -520,6 +520,14 @@ AsyncImage(
 
 ## 11. Postmark Gap Analysis — What Still Needs Doing
 
+> ⚠️ **This section is stale — last audited May 3, 2026.** Most of the gaps below have
+> since shipped (block number, contact photo, group MMS, the save-number prompt, MMS
+> media playback), and item 1's claim that `thread_id` is "not currently set on insert"
+> is simply wrong today: `SmsManagerWrapper.kt` sets it via
+> `Telephony.Threads.getOrCreateThreadId()` on every insert. Treat §§1–10 above as the
+> living reference — the Android API facts there are still correct for targetSdk 35 —
+> and use `docs/TODO.md` for current project status instead of this section.
+
 Cross-referenced against the project BRIEFING.md and TODO.md. Items are ordered by tier.
 Last audited: May 3, 2026.
 
@@ -645,4 +653,3 @@ As default SMS app, you MUST:
 | `BlockedNumberContract` | https://developer.android.com/reference/android/provider/BlockedNumberContract |
 | `ContactsContract.PhoneLookup` | https://developer.android.com/reference/android/provider/ContactsContract.PhoneLookup |
 | `SmsManager` | https://developer.android.com/reference/kotlin/android/telephony/SmsManager |
-| Existing SMS deep-dive | docs/SMS_RESEARCH.md |

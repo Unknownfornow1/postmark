@@ -36,12 +36,16 @@ Postmark's existing, verifiable moats — lean into all three:
   saved searches. GM's search is an afterthought; make ours the reason people switch.
 - **Stats → shareable.** Nobody else has conversation stats at all. A "year in texts" /
   monthly recap rendered as an image is organic marketing built into the product.
-  (The message-export image pipeline was removed July 29 — a recap card would be a
-  fresh, much smaller renderer.)
+  (The message-export image pipeline was removed August 3, commit `dd1dee3` — a recap
+  card would be a fresh, much smaller renderer.)
 - **Organization: labels + snooze.** Manual labels (no ML needed), filter chips on the home
   screen; snooze-a-conversation reuses the reminders infrastructure nearly verbatim.
-- **Per-thread appearance + per-contact rows** — already 60% built (see the July 24 scout in
-  NIGHTRUN_REPORT); personalization is a classic third-party-app win Google won't match.
+- **Per-thread appearance + per-contact rows** — shipped. Per-contact accent colors
+  (avatar + bubbles), custom chat backgrounds with a placement editor, bubble styles, and
+  theme presets are all live (see README's Personalization section). What remains is
+  preset *sharing* (`docs/theme-presets-plan.md` P3–P5) and a
+  per-thread font/style override, both tracked in `docs/TODO.md`. Personalization is a
+  classic third-party-app win Google won't match.
 
 ### P2 — decisions needed from the owner before building
 - **On-device smart reply / summaries.** ML Kit Smart Reply runs fully on-device — but it's

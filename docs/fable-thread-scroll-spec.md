@@ -1,5 +1,9 @@
 # Thread scroll fixes — Fable spec, 2026-07-19
 
+> **Both tasks shipped (July 19 2026); retained because BRIEFING.md cites it.** Only the
+> final on-device confirmation line is unchecked, and ThreadScreen has had several
+> device passes since.
+
 Two on-device reports from Chris. Implementation delegated (Task A: Opus,
 Task B: Sonnet, sequential — both touch `ThreadScreen.kt`). Fable reviews the diff.
 

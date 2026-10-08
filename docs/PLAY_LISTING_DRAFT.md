@@ -103,13 +103,18 @@ and the actual code, not aspirational.
 - Per-contact accent colors (avatar + bubbles) and custom chat backgrounds
 - Light/dark/system theme, Material You dynamic color (Android 12+), adjustable text size
 - Block numbers and a dedicated Spam folder
+- Schedule a message to send later, and set a reminder to come back to one
+- Star, pin, and forward messages; browse every photo, video, and link a contact has sent
 - No ads, no analytics, no account, no internet permission
 
 **Known limitations to state somewhere honest** (store description, FAQ, or a "before you
 install" note — owner's call where): no RCS (SMS/MMS only); group MMS sending is implemented
-but not yet verified against every carrier; single-device-validated so far (Samsung S24 Ultra
-daily-driver scale — other OEMs untested). **[OWNER CONFIRM]** whether the carrier/OEM caveat
+but not yet verified against every carrier; single-device-validated so far (tested at full-history
+scale on a Samsung S24 Ultra, not yet daily-driven — other OEMs untested). **[OWNER CONFIRM]** whether the carrier/OEM caveat
 belongs in the public listing or only in release notes/support docs.
+**[OWNER CONFIRM]** whether message reminders are mature enough to advertise — added to
+the bullet list 2026-09-23 because they shipped July 24 and were missing from this draft
+entirely, but they have not had an on-device pass.
 
 ---
 
@@ -142,7 +147,7 @@ belongs in the public listing or only in release notes/support docs.
 8. **Backup settings screen** — schedule options + "Back up now" + backup history list,
    to visually back up the "your data, your control" claim with the actual settings UI.
 
-Capture on the actual daily-driver device (S24 Ultra per BRIEFING.md) with realistic but
+Capture on the actual test device (S24 Ultra per BRIEFING.md) with realistic but
 **non-private** sample data — **[OWNER CONFIRM]**: use a seeded demo account/thread rather
 than Chris's real texts, since these screenshots become public.
 

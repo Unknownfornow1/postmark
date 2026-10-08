@@ -1,5 +1,10 @@
 # Voice memos — Fable review checklist
 
+> **Implemented in full (July 17–18 2026); retained because README cites it for the
+> deliberate non-fixes.** Every checklist item below is `[x]`. The two "explicitly
+> accepted" trade-offs at the end (rotation mid-hold, selection mode hiding the reply
+> bar) are deliberate, not open work.
+
 Source: Fable 5 analysis of the `feat/voice-memos` implementation (as of `858d72f`,
 2026-07-17). This is the working checklist for the follow-up hardening — check items
 off as they land. Implementation is delegated to Sonnet agents; Fable reviews.

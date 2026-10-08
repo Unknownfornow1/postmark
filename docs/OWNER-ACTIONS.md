@@ -2,8 +2,14 @@
 
 Three items from `docs/fable-analysis.md`'s 🟡 tier are blocked on decisions or
 assets only the project owner can provide. Everything else in that tier is done
-(see CHANGELOG 2026-07-12). Last updated: August 10, 2026 (audited against code;
-item 2 corrected — CI ships minified `assembleStaging`, not debug builds).
+(see CHANGELOG 2026-07-12). Last updated: September 23, 2026.
+
+**Re-audited 2026-09-23: all three items below are still open**, with no commit in
+the intervening six weeks addressing any of them — `app/build.gradle.kts` still has no
+`signingConfigs.release`, no encryption code exists, and the trademark question has no
+resolution. They are now also mirrored into `docs/TODO.md` under "Owner decisions" so
+they are reachable from the live backlog. (August 10, 2026: item 2 corrected — CI ships
+minified `assembleStaging`, not debug builds.)
 
 ---
 

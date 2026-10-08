@@ -30,6 +30,15 @@ A privacy-first Android SMS app built with Kotlin and Jetpack Compose. Postmark 
 - Operable with TalkBack (double-tap starts hands-free recording) and reachable from the attachment menu even when a photo or video is already attached
 - All playback — bubbles, pending review chips, and the preview take — goes through one shared per-thread audio player (`ThreadAudioPlayer`, Media3 ExoPlayer): only one chip plays at a time, playback survives the chip scrolling off-screen, and audio focus is handled automatically
 
+### Conversation Management
+- **Schedule send** — queue a message to go out later; `ScheduledSendWorker` fires it, and nothing enters the messages table until it actually sends
+- **Message reminders** — flag a message to resurface at a chosen time
+- **Pin messages** within a thread, and pin threads in the conversation list
+- **Forward** a message to another conversation
+- **Starred images** — a gallery of every image you've starred, across all threads
+- **Block numbers and a Spam folder** — block from the thread or in bulk from the conversation list; suspected spam is filed separately rather than deleted
+- **Per-thread notification settings**, plus mute
+
 ### Stats
 - **Global stats** — total messages, sent/received split, active days, longest streak, top emoji, and activity by day of week
 - **Per-thread stats** — same metrics scoped to any individual conversation
@@ -223,7 +232,7 @@ On first launch Postmark requests the **default SMS role** via `RoleManager`. On
 | `READ_CONTACTS` | Resolve contact names from phone numbers |
 | `POST_NOTIFICATIONS` (API 33+) | Post SMS notifications |
 | `RECEIVE_BOOT_COMPLETED`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `ACCESS_NETWORK_STATE` | Background sync catch-up and scheduled backups (WorkManager) |
-| `WRITE_EXTERNAL_STORAGE` (API ≤ 28) | Write backup files / gallery saves to external storage |
+| `WRITE_EXTERNAL_STORAGE` (API ≤ 28) | Save an MMS image to the public Pictures gallery on Android 8–9 only. Backups need no permission — they go to app-specific external storage |
 
 ---
 
@@ -243,8 +252,9 @@ On first launch Postmark requests the **default SMS role** via `RoleManager`. On
 - **Emoji reactions are local annotations.** Incoming Apple-style reaction texts are
   parsed and rendered, but reactions you add are stored only in Postmark's database —
   nothing is transmitted to the other person.
-- **Single-device validated.** Daily-driven at 620-thread/159k-message scale on a
-  Samsung S24 Ultra; other OEMs and carriers (especially MMS behavior) are untested.
+- **Single-device validated, not yet a daily driver.** Tested at 620-thread/159k-message
+  scale on a Samsung S24 Ultra, but not yet in regular everyday use; other OEMs and
+  carriers (especially MMS behavior) are untested.
 - **Voice memo recording has no dedicated foreground service.** Locked (hands-free)
   recording keeps the screen on and safely parks the take if you background the app,
   which covers real-world usage, but it isn't the OS-guaranteed durability a foreground
@@ -257,10 +267,18 @@ On first launch Postmark requests the **default SMS role** via `RoleManager`. On
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — layer map, database schema, FTS sync strategy, key design decisions
 - [`docs/TODO.md`](docs/TODO.md) — the live, tiered backlog; source of truth for what's next
 - [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — dated development journal, newest entries first
-- [`docs/fable-voice-memo.md`](docs/fable-voice-memo.md) — voice memo review checklist: recording robustness (screen-off, recorder errors, ghost playback), accessibility, and polish items
-- [`docs/performance-analysis.md`](docs/performance-analysis.md) — tiered performance audit and the fixes it drove
-- [`docs/MMS_AUDIT.md`](docs/MMS_AUDIT.md) — point-in-time MMS system audit (June 2026); largely superseded by the multi-attachment/video work since
+- [`BRIEFING.md`](BRIEFING.md) — the long-form context document: what is built, what is not, and the conventions to follow. Read before starting work
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — phase-by-phase feature history and what remains
+- [`docs/VISION.md`](docs/VISION.md) — what the app is for and the lines it deliberately won't cross
 - [`docs/OWNER-ACTIONS.md`](docs/OWNER-ACTIONS.md) — open items that need an owner decision, not just code
+- [`docs/performance-analysis.md`](docs/performance-analysis.md) — tiered performance audit; the Tier 1 items shipped, the Tier 2/4 backlog is mirrored into TODO.md
+- [`docs/MMS_AUDIT.md`](docs/MMS_AUDIT.md) — the project's working MMS reference: WAP PDU mechanics, part tables, and a live findings table
+- [`docs/SMS_ANDROID_API_REFERENCE.md`](docs/SMS_ANDROID_API_REFERENCE.md) — Android SMS/MMS platform API reference (content provider fields, SmsManager, BlockedNumberContract)
+- [`docs/GROUP_MESSAGING_SPEC.md`](docs/GROUP_MESSAGING_SPEC.md) — group MMS spec; implemented, retained for the on-device verification gates
+- [`docs/theme-presets-plan.md`](docs/theme-presets-plan.md) — theme presets; P1/P2 shipped, the share/import file format is still a design on paper
+- [`docs/TARGET_SDK_REVIEW.md`](docs/TARGET_SDK_REVIEW.md) — target SDK compliance review and open platform gaps
+- [`docs/PLAY_LISTING_DRAFT.md`](docs/PLAY_LISTING_DRAFT.md) and [`docs/PRIVACY_POLICY_DRAFT.md`](docs/PRIVACY_POLICY_DRAFT.md) — store listing and privacy policy drafts
+- [`docs/history/`](docs/history/) — dated run reports, kept for the record
 
 ---
 
