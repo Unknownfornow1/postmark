@@ -81,7 +81,7 @@ import java.io.File
  *  - Photos / Videos / Links sections (Google Messages-style): each media section shows
  *    a capped 6-item preview grid that opens a full gallery route ([onOpenPhotos] /
  *    [onOpenVideos]) when tapped; Links renders inline (no third route — see
- *    [LinkRow]/docs/TODO.md for why). Empty sections are hidden entirely.
+ *    [LinkRow]/docs/CHANGELOG.md 2026-07-24 feat/contact-media-gallery for why). Empty sections are hidden entirely.
  *
  * @param threadId     Room thread ID passed via the nav graph.
  * @param onBack       Called when the user presses the back arrow.
@@ -426,7 +426,7 @@ fun ContactDetailScreen(
             // Renders every link inline rather than capping + a third gallery route:
             // full grid parity was only asked for Photos/Videos, and a link list has no
             // grid layout to make a dedicated route worth its own screen/ViewModel/nav
-            // entry for. See docs/TODO.md for the full writeup of this decision.
+            // entry for. See docs/CHANGELOG.md (2026-07-24, feat/contact-media-gallery).
             if (links.isNotEmpty()) {
                 item {
                     Text(

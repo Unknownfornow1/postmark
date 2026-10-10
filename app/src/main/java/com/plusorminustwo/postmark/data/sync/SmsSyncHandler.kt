@@ -222,7 +222,7 @@ class SmsSyncHandler @Inject constructor(
     }
 
     /*
-     * Contact-name refresh (docs/TODO.md Tier 2 "Contact integration": "if contact name
+     * Contact-name refresh (docs/CHANGELOG.md 2026-07-22: "if contact name
      * changes in system Contacts, update Thread.displayName on next sync"). displayName is
      * resolved ONCE, at thread-creation time (ensureThread / the worker's cursor passes),
      * so a contact renamed afterwards leaves the conversation list and thread header showing

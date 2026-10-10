@@ -1,7 +1,7 @@
 package com.plusorminustwo.postmark.data.sync
 
 /**
- * Decision logic for the contact-name refresh pass (docs/TODO.md Tier 2 "Contact
+ * Decision logic for the contact-name refresh pass (docs/CHANGELOG.md 2026-07-22 "Contact
  * integration": "if contact name changes in system Contacts, update Thread.displayName
  * on next sync").
  *

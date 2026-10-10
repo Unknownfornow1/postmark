@@ -6,7 +6,7 @@
 
 **Date:** July 19, 2026
 **Author:** Fable 5 (analysis/spec only — implementation delegated per model-usage policy)
-**Prerequisite reading:** `docs/MMS_AUDIT.md` §1.4, §2.3; `docs/TODO.md` "Group MMS" items
+**Prerequisite reading:** `docs/MMS_AUDIT.md` §1.4, §2.3; the "Group MMS" entries in `docs/CHANGELOG.md` (2026-07-06 to 07-19)
 **Status of this doc:** ALL PHASES IMPLEMENTED July 19 2026 (Opus P0/P1, Sonnet P2/P3,
 Fable review; 829 tests green). Remaining open items: the on-device verification matrix
 in §5 (unchecked boxes in §1.6/§2.4/§3 are on-device gates, not missing work) and the

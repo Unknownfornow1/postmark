@@ -69,7 +69,7 @@ Build order follows the spec. Each phase depends on the previous.
 - [x] **Backup format v2** — streamed zip with full thread/message/reaction fidelity + attachment bytes (replaces the lossy id/body/timestamp/isSent-only v1 JSON); manifest carries `version` + reserved `encryption` fields
 - [x] **Backup restore** (`RestoreWorker`) — reads v2 (and legacy v1) archives back into Room; merge-only, fingerprint-deduped, idempotent, restored into a reserved id range excluded from sync watermarks
 - [x] **SAF backup folder** — user-chosen location so backups survive app uninstall
-- [ ] **Backup encryption** — content is still plaintext; needs a passphrase-UX decision (see `docs/TODO.md` #13)
+- [ ] **Backup encryption** — content is still plaintext; needs a passphrase-UX decision (see `docs/TODO.md`, Owner decisions)
 
 ---
 
@@ -183,8 +183,8 @@ phase here. `docs/TODO.md` is the authority on the remaining verification gates.
 - [x] **Per-thread notification settings** — `NotificationSettingsScreen`
 - [x] **Contact media gallery** — photos, videos, and links per contact
 - [x] **About / Licenses screen** and the MIT relicense (Aug–Sept 2026)
-- [ ] On-device verification of the above — see `docs/TODO.md`; several are implemented
-      but still flagged "needs on-device verification"
+- [ ] On-device verification of the above — see the verification backlog at the end of
+      `docs/TODO.md`
 
 ---
 

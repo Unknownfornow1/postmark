@@ -101,7 +101,7 @@ interface ThreadDao {
     @Query("UPDATE threads SET participantsJson = :participantsJson, displayName = :displayName WHERE id = :threadId")
     suspend fun updateRoster(threadId: Long, participantsJson: String?, displayName: String)
 
-    /* Contact-name refresh write: updates ONLY displayName (docs/TODO.md Tier 2). Never
+    /* Contact-name refresh write: updates ONLY displayName (docs/CHANGELOG.md 2026-07-22). Never
      * touches user-set fields (isPinned/isMuted/notificationsEnabled/nickname/colors) or
      * the group roster (participantsJson), so it's safe to run over synced threads. */
     @Query("UPDATE threads SET displayName = :displayName WHERE id = :threadId")
