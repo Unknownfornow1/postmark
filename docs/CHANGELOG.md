@@ -4,6 +4,28 @@ Newest entries on top. Each day is a journal of work completed.
 
 ---
 
+## 2026-10-09 (docs/todo-cleanup) — TODO lists open work only
+
+Documentation only; no app behavior changed.
+
+- **`docs/TODO.md` went from 1,942 lines to 280.** The 152 finished items are
+  gone; each one already had its own entry in this changelog. The two that didn't
+  (`0542be1` on 2026-04-28 and `3721015` on 2026-04-30) were added to those days' entries
+  below. The new rule is at the top of TODO: when you finish an item, write it up here
+  and delete it there.
+- **Follow-ups that were hidden inside finished items are now open items of their
+  own**: address → Maps linkify, per-bubble avatars in groups, a global reminders
+  list, re-arming restored reminders, scheduled-send MMS/backup, scheduled-send
+  timing (owner question), live delivery status for forwards, the readable-export
+  `index.html`, and the instrumented-CI cost decision.
+- **The device checks still pending for shipped features are now one list** at the
+  end of TODO, one line per feature, keyed by date and branch to the entry here that
+  holds the full checklist.
+- Code comments, ARCHITECTURE, ROADMAP and two spec docs that pointed at removed TODO
+  sections now point at the changelog entry instead.
+
+---
+
 ## 2026-09-23 (fix/date-picker-title-height) — date range picker: dialog no longer resizes as you pick
 
 1184 tests passing (unchanged).
@@ -5937,6 +5959,17 @@ _(Merged `copilot/featfix-avatar-color-seed` → `master` → `feat/ui-improveme
 
 ## 2026-04-30
 
+### Avatar colors, phone formatting, data-driven reaction filter (`3721015`)
+*Backfilled 2026-10-09 — this commit shipped without a changelog entry.*
+- **Avatar color stays put when a contact is renamed** — `LetterAvatar` is seeded with
+  `thread.address` instead of the display name.
+- **Phone numbers display formatted** — new `formatPhoneNumber()` in
+  `PhoneNumberFormatter.kt` renders E.164 NANP numbers as `(xxx) xxx-xxxx` in
+  Conversations, Thread and Search.
+- **Search's reaction filter lists the emoji you've actually used** —
+  `ReactionDao.observeDistinctEmojis()` feeds the picker via `SearchViewModel`; the
+  hardcoded emoji list is gone.
+
 ### 1. Avatar color seed fix
 - **Quick reaction tray**: Reduced from 7+ items to 5 defaults (❤️ 👍 😂 😮 🔥) + ➕ "more" button. `DEFAULT_QUICK_EMOJIS` and `buildQuickEmojiList` limit updated to 5.
 - **Pill styling**: 44dp touch targets, 24sp emoji font. `Surface` with `#2C2C2E` bg, `0.5dp #3A3A3C` border, 24dp corner radius, 8dp elevation shadow.
@@ -5958,6 +5991,20 @@ _(Merged `copilot/featfix-avatar-color-seed` → `master` → `feat/ui-improveme
 ---
 
 ## 2026-04-28
+
+### Search filters, mute, heatmap tiers, reaction stats (`0542be1`)
+*Backfilled 2026-10-09 — this commit shipped without a changelog entry.*
+- **Search date range filter** — Today / 7 days / 30 days preset chips via the
+  `SearchDateRange` enum + `toBoundsMs()`; one `searchMessagesFiltered()` DAO query
+  handles every combination (`SearchDateRangeTest`).
+- **Search reaction filter** — emoji picker bottom sheet; filters through a subquery on
+  `reactions` in `searchMessagesFilteredWithReaction()` (`SearchReactionFilterTest`).
+- **Mute / unmute a thread** — `isMuted` on `ThreadEntity` (non-destructive migration),
+  DAO → repository → `ThreadViewModel`, toggled from the thread ⋮ menu.
+- **Heatmap tier function** moved to the shared domain layer.
+- **Reaction emoji stats persisted** — `topReactionEmojisJson` on both
+  `ThreadStatsEntity` and `GlobalStatsEntity`, written by `StatsUpdater`
+  (migration 4→5; `StatsUpdaterReactionTest`). These tables were later deleted at v15.
 
 ### Reaction chip — final positioning (badge style, anchored to bubble)
 - **Crash fix**: `padding(top = (-6).dp)` → `offset(y = (-6).dp)` — Compose throws on negative padding values.

@@ -6,7 +6,7 @@ import org.junit.Test
 
 /**
  * Tests for [resolveDisplayNameRefresh], the pure decision behind the contact-name refresh
- * pass (docs/TODO.md Tier 2 "Contact integration"). No Android / content-resolver
+ * pass (docs/CHANGELOG.md 2026-07-22, "Contact name refresh"). No Android / content-resolver
  * involvement — [SmsSyncHandler.refreshOneToOneDisplayNames] is the thin I/O wrapper that
  * feeds this the stored name, the live-resolved name, and the group flag.
  */

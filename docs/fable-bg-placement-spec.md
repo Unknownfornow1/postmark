@@ -1,7 +1,7 @@
 # Chat-background EXIF fix + placement editor — implementation spec
 
-> **Shipped in full (July 2026), including the follow-up dialog-insets fix; retained
-> because `docs/TODO.md` cites §8.** `BackgroundPlacementEditor` is now the project's
+> **Shipped in full (July 2026), including the follow-up dialog-insets fix; retained as
+> the background for CLAUDE.md's dialog-insets rule (§8).** `BackgroundPlacementEditor` is now the project's
 > canonical example of capturing WindowInsets outside a Dialog block.
 
 Decision-complete spec authored by Fable 5 (2026-07-18). An Opus subagent implements

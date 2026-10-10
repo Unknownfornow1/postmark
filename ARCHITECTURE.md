@@ -209,7 +209,7 @@ attachment bytes. Records are serialized one line at a time and attachment bytes
 copied stream-to-stream, so memory stays bounded by a single thread's message list
 regardless of total size. The manifest carries a `version` field (enabling future
 migration) and a reserved `encryption` field (content is plaintext today — see
-`docs/TODO.md` #13).
+`docs/TODO.md`, Owner decisions).
 
 - **`BackupArchiveExporter`** — the shared write engine for any `BackupSelection`.
 - **`BackupWorker`** (WorkManager `PeriodicWorkRequest`) — scheduled full backup of all
@@ -241,8 +241,9 @@ There is deliberately **no persisted stats table**. An earlier design pre-aggreg
 `thread_stats`/`global_stats`, but nothing ever read those tables (the screen always
 computed live), so the write-only tables — and their `StatsUpdater` full-table-scan
 recompute on every sync/import/restore — were removed in schema v15. The one remaining
-performance concern (heatmap at 150k+ messages) is tracked separately in `docs/TODO.md`
-and never depended on those tables.
+performance concern (heatmap at 150k+ messages) moved to SQL aggregation in July 2026
+and never depended on those tables; its on-device check is in `docs/TODO.md`'s
+verification backlog.
 
 **Two emoji stat categories are tracked separately** (users use them differently):
 - **Top emoji (messages)** — emoji extracted from message body text

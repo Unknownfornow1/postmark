@@ -41,8 +41,8 @@ import com.plusorminustwo.postmark.ui.components.ContactAvatar
  * conversation list. Reached from Settings › Privacy › Spam.
  *
  * Tapping a row opens the normal thread screen (the same route as the main list); the
- * per-row "Not spam" button restores the thread. The auto-flag heuristics and the inline
- * notification "report spam" action are intentionally deferred (see docs/TODO.md).
+ * per-row "Not spam" button restores the thread. Auto-flag heuristics and the
+ * notification "Report spam" action live elsewhere (SpamSuspicionBanner, ReportSpamReceiver).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
