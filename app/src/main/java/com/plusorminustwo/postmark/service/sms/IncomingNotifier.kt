@@ -23,6 +23,7 @@ import com.plusorminustwo.postmark.PostmarkApplication
 import com.plusorminustwo.postmark.R
 import com.plusorminustwo.postmark.data.contacts.loadContactPhotoBitmap
 import com.plusorminustwo.postmark.ui.MainActivity
+import com.plusorminustwo.postmark.ui.BubbleActivity
 import com.plusorminustwo.postmark.ui.components.avatarColor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -241,7 +242,39 @@ class IncomingNotifier @Inject constructor(
                 .build()
             ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
             builder.setShortcutId(shortcutId)
-        }
+        
+            // ── Android conversation bubble ─────────────────────────────
+            if (threadId > 0L &&
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+            ) {
+                val bubbleIntent = Intent(context, BubbleActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                    putExtra(BubbleActivity.EXTRA_THREAD_ID, threadId)
+                }
+
+                val bubblePendingIntent = PendingIntent.getActivity(
+                    context,
+                    threadId.toInt(),
+                    bubbleIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                )
+
+                val bubbleMetadata = NotificationCompat.BubbleMetadata.Builder(
+                    bubblePendingIntent,
+                    icon
+                )
+                    .setDesiredHeight(
+                        (600 * context.resources.displayMetrics.density).toInt()
+                    )
+                    .setAutoExpandBubble(false)
+                    .setSuppressNotification(false)
+                    .build()
+
+                builder.setBubbleMetadata(bubbleMetadata)
+            }
+}
 
         nm.notify(notifKey, builder.build())
 
