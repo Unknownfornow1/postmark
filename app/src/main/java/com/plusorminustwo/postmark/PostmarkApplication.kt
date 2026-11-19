@@ -83,6 +83,9 @@ class PostmarkApplication : Application(), Configuration.Provider {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "New SMS messages"
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                     setAllowBubbles(true)
+                }
                 enableLights(true)
                 enableVibration(true)
             }
