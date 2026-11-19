@@ -21,6 +21,7 @@ media3 = "1.5.1"
 exifinterface = "1.3.7"
 documentfile = "1.1.0"
 emoji2Emojipicker = "1.6.0"
+lottie = "6.7.1"
 metricsPerformance = "1.0.0-beta02"
 
 [libraries]
@@ -63,6 +64,7 @@ media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "medi
 media3-transformer = { group = "androidx.media3", name = "media3-transformer", version.ref = "media3" }
 media3-effect = { group = "androidx.media3", name = "media3-effect", version.ref = "media3" }
 androidx-emoji2-emojipicker = { group = "androidx.emoji2", name = "emoji2-emojipicker", version.ref = "emoji2Emojipicker" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
