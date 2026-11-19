@@ -76,7 +76,12 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".ui.BubbleActivity"
+            android:exported="false"
+            android:allowEmbedded="true"
+            android:documentLaunchMode="always"
+            android:resizeableActivity="true" />
         <!-- WorkManager foreground service — must declare foregroundServiceType
              on API 34+ or the OS throws IllegalArgumentException on start.
              tools:node="merge" lets WorkManager's own manifest declaration merge
