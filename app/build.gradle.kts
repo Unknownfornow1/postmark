@@ -171,6 +171,7 @@ dependencies {
     // Full system-style emoji picker (all Unicode emoji, categories, recents) for
     // message reactions — replaces the ~47-emoji hand-curated picker.
     implementation(libs.androidx.emoji2.emojipicker)
+    implementation(libs.lottie.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
