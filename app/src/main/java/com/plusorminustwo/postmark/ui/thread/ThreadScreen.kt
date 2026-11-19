@@ -6747,21 +6747,42 @@ private fun AnimatedEmojiBubble(
         return
     }
 
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.Url(animationUrl)
-    )
+    val lottieResult = rememberLottieComposition(
+    LottieCompositionSpec.Url(animationUrl)
+)
 
-    if (composition == null) {
+val composition = lottieResult.value
+
+when {
+    lottieResult.isLoading -> {
         Text(
-            text = emoji,
-            fontSize = 36.sp,
+            text = "Loading animation...",
+            fontSize = 12.sp,
             modifier = modifier
         )
-    } else {
+    }
+
+    lottieResult.isFailure -> {
+        Text(
+            text = "Animation error: ${lottieResult.error}",
+            fontSize = 12.sp,
+            modifier = modifier
+        )
+    }
+
+    composition != null -> {
         LottieAnimation(
             composition = composition,
             iterations = LottieConstants.IterateForever,
             modifier = modifier.size(64.dp)
+        )
+    }
+
+    else -> {
+        Text(
+            text = emoji,
+            fontSize = 36.sp,
+            modifier = modifier
         )
     }
 }
