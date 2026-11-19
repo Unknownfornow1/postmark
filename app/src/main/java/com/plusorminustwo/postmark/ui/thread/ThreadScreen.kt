@@ -71,6 +71,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.emoji2.emojipicker.EmojiPickerView
+import com.airbnb.lottie.LottieComposition
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
@@ -2363,35 +2368,30 @@ private fun MessageBubble(
                         linkifyText(message.body, linkColor, ctx)
                     }
                                         val isEmojiOnly = message.body.isNotBlank() &&
-                        message.body.codePoints().anyMatch { codePoint ->
-                            codePoint in 0x1F000..0x1FAFF ||
-                            codePoint in 0x2600..0x27BF
-                        } &&
-                        message.body.none { it.isLetterOrDigit() }
+    message.body.codePoints().anyMatch { codePoint ->
+        codePoint in 0x1F000..0x1FAFF ||
+        codePoint in 0x2600..0x27BF
+    } &&
+    message.body.none { it.isLetterOrDigit() }
 
-                    val emojiTransition = rememberInfiniteTransition(label = "emojiMessage")
-                    val emojiScale by emojiTransition.animateFloat(
-                        initialValue = 1f,
-                        targetValue = 1.07f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(900),
-                            repeatMode = RepeatMode.Reverse
-                        ),
-                        label = "emojiMessageScale"
-                    )
-                    Text(
-                        text = annotated,
-                        style = baseStyle.withBubbleScale(fontScale).copy(
-    color = textColor,
-    fontSize = if (isEmojiOnly) 36.sp else baseStyle.withBubbleScale(fontScale).fontSize
-),
-modifier = if (isEmojiOnly) {
-    Modifier.graphicsLayer {
-        scaleX = emojiScale
-        scaleY = emojiScale
-    }
-} else Modifier
-                    )
+val singleEmoji = message.body.trim()
+val canAnimateEmoji = isEmojiOnly &&
+    singleEmoji.codePoints().toArray()
+        .filter { it != 0xFE0F && it != 0xFE0E }
+        .size == 1
+
+if (canAnimateEmoji) {
+    AnimatedEmojiBubble(emoji = singleEmoji)
+} else {
+    Text(
+        text = annotated,
+        style = baseStyle.withBubbleScale(fontScale).copy(
+            color = textColor,
+            fontSize = if (isEmojiOnly) 36.sp
+                else baseStyle.withBubbleScale(fontScale).fontSize
+        )
+    )
+}
                 }
             }
             when (below) {
@@ -6717,5 +6717,51 @@ private fun ThreadNewMessageScrollEffect(
             kotlinx.coroutines.delay(3_000)
             onFabVisible(false)
         }
+    }
+}
+private fun notoEmojiAnimationUrl(emoji: String): String? {
+    val codePoints = emoji.codePoints().toArray()
+        .filter { it != 0xFE0F && it != 0xFE0E }
+
+    if (codePoints.size != 1) return null
+
+    val codePoint = codePoints.single().toString(16)
+    return "https://fonts.gstatic.com/s/e/notoemoji/latest/$codePoint/lottie.json"
+}
+
+@Composable
+private fun AnimatedEmojiBubble(
+    emoji: String,
+    modifier: Modifier = Modifier
+) {
+    val animationUrl = remember(emoji) {
+        notoEmojiAnimationUrl(emoji)
+    }
+
+    if (animationUrl == null) {
+        Text(
+            text = emoji,
+            fontSize = 36.sp,
+            modifier = modifier
+        )
+        return
+    }
+
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.Url(animationUrl)
+    )
+
+    if (composition == null) {
+        Text(
+            text = emoji,
+            fontSize = 36.sp,
+            modifier = modifier
+        )
+    } else {
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = modifier.size(64.dp)
+        )
     }
 }
