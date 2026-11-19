@@ -13,6 +13,9 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.airbnb.lottie.Lottie
+import com.airbnb.lottie.LottieConfig
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -52,6 +55,11 @@ class PostmarkApplication : Application(), Configuration.Provider {
             )
         }
         super.onCreate()
+        Lottie.initialize(
+    LottieConfig.Builder()
+        .setNetworkCacheDir(File(filesDir, "noto_emoji_animations"))
+        .build()
+)
         createNotificationChannels()
         // Register content observer so incremental SMS changes are picked up
         // while the app is running. The initial bulk sync is triggered by
