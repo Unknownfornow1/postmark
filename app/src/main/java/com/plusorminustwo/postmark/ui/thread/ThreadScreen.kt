@@ -68,6 +68,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
@@ -2359,11 +2362,35 @@ private fun MessageBubble(
                     val annotated  = remember(message.body, linkColor, ctx) {
                         linkifyText(message.body, linkColor, ctx)
                     }
+                                        val isEmojiOnly = message.body.isNotBlank() &&
+                        message.body.codePoints().anyMatch { codePoint ->
+                            codePoint in 0x1F000..0x1FAFF ||
+                            codePoint in 0x2600..0x27BF
+                        } &&
+                        message.body.none { it.isLetterOrDigit() }
+
+                    val emojiTransition = rememberInfiniteTransition(label = "emojiMessage")
+                    val emojiScale by emojiTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = 1.07f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(900),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "emojiMessageScale"
+                    )
                     Text(
                         text = annotated,
                         style = baseStyle.withBubbleScale(fontScale).copy(
-                            color = textColor
-                        )
+    color = textColor,
+    fontSize = if (isEmojiOnly) 36.sp else baseStyle.withBubbleScale(fontScale).fontSize
+),
+modifier = if (isEmojiOnly) {
+    Modifier.graphicsLayer {
+        scaleX = emojiScale
+        scaleY = emojiScale
+    }
+} else Modifier
                     )
                 }
             }
@@ -3426,6 +3453,8 @@ private fun ReplyBar(
 ) {
     val context = LocalContext.current
     var showAttachMenu by remember { mutableStateOf(false) }
+    var showEmojiPicker by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
     // Collected once here (not per chip) — the map changes only when a take is
     // stored/removed, so a single subscription feeds every chip its resolved value.
     val waveforms by memoWaveforms.collectAsState()
@@ -3792,6 +3821,19 @@ private fun ReplyBar(
                                 }
                             }
                         }
+                        IconButton(
+    onClick = {
+        showEmojiPicker = !showEmojiPicker
+        keyboardController?.hide()
+    },
+    modifier = Modifier.size(40.dp)
+) {
+    Icon(
+        imageVector = Icons.Default.EmojiEmotions,
+        contentDescription = "Open emoji picker",
+        tint = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+                        }
                         Box(modifier = Modifier.weight(1f)) {
                             if (isRecording) {
                                 RecordingStatusRow(
@@ -3919,6 +3961,25 @@ private fun ReplyBar(
                         }
                     }
                 }
+                                AnimatedVisibility(
+                    visible = showEmojiPicker,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    AndroidView(
+                        factory = { viewContext ->
+                            EmojiPickerView(viewContext).apply {
+                                emojiGridColumns = 8
+                                setOnEmojiPickedListener { item ->
+                                    onTextChange(text + item.emoji)
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(260.dp)
+                    )
+                                }
 
                 // ── Voice memo panel (in the keyboard's space) ────────────────────
                 // Starting a recording removes the focused TextField, which closes
