@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
  * Entities: [ThreadEntity], [MessageEntity], [ReactionEntity], [MessageFtsEntity],
  * [ScheduledMessageEntity].
  *
- * Current schema version: 23.
+ * Current schema version: 24.
  * All upgrades are handled by explicit [Migration] objects — never by destructive
  * fallback. [FTS_CALLBACK] re-populates the FTS shadow table after fresh installs.
  */
@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
         MessageFtsEntity::class,
         ScheduledMessageEntity::class
     ],
-    version = 23,
+    version = 24,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -293,6 +293,18 @@ abstract class PostmarkDatabase : RoomDatabase() {
                 )
             }
         }
+                val MIGRATION_23_24 = object : Migration(23, 24) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Per-thread received and sent bubble opacity. Existing conversations
+                // retain the fully opaque appearance by default.
+                db.execSQL(
+                    "ALTER TABLE threads ADD COLUMN receivedBubbleOpacity REAL NOT NULL DEFAULT 1.0"
+                )
+                db.execSQL(
+                    "ALTER TABLE threads ADD COLUMN sentBubbleOpacity REAL NOT NULL DEFAULT 1.0"
+                )
+            }
+                }
 
         val FTS_CALLBACK = object : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
