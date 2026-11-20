@@ -6,6 +6,9 @@ import android.app.NotificationManager
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.google.android.gms.common.moduleinstall.ModuleInstall
+import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
+import com.google.mlkit.nl.smartreply.SmartReply
 import com.plusorminustwo.postmark.data.sync.SmsContentObserver
 import com.plusorminustwo.postmark.service.backup.BackupScheduler
 import com.plusorminustwo.postmark.service.sms.SendQueueWorker
