@@ -55,6 +55,11 @@ class PostmarkApplication : Application(), Configuration.Provider {
             )
         }
         super.onCreate()
+        smartReplyEngine.isModelAvailable { isAvailable ->
+    if (!isAvailable) {
+        smartReplyEngine.installModel()
+    }
+        }
         
         createNotificationChannels()
         // Register content observer so incremental SMS changes are picked up
