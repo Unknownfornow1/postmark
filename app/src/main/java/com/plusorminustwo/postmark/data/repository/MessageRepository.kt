@@ -45,6 +45,16 @@ class MessageRepository @Inject constructor(
 
     suspend fun insertAll(messages: List<Message>) =
         messageDao.insertAll(messages.map { it.toEntity() })
+            // Preserves the local read state when historical sync replaces existing messages.
+    suspend fun insertAllPreservingReadState(messages: List<Message>) {
+        val entities = messages.map { message ->
+            val existing = messageDao.getById(message.id)
+            message.toEntity().copy(
+                isRead = existing?.isRead ?: message.isRead
+            )
+        }
+        messageDao.insertAll(entities)
+    }
 
     suspend fun delete(message: Message) = messageDao.delete(message.toEntity())
 
