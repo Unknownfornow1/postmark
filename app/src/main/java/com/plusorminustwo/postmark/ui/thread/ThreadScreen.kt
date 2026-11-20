@@ -250,6 +250,12 @@ internal data class BubbleAccentColors(
     val sentContent: Color? = null
 )
 internal val LocalBubbleAccentColors = compositionLocalOf { BubbleAccentColors() }
+internal data class BubbleOpacities(
+    val received: Float = 1f,
+    val sent: Float = 1f
+)
+
+internal val LocalBubbleOpacities = compositionLocalOf { BubbleOpacities() }
 
 /**
  * Entry-point composable for a single conversation thread.
@@ -1232,21 +1238,15 @@ private fun ThreadContent(
     // Provide the current font scale and per-thread accent to all bubble composables
     // via CompositionLocal. A two-finger pinch anywhere on the thread area updates the
     // scale via onAdjustFontScale.
-    CompositionLocalProvider(
+        CompositionLocalProvider(
         LocalBubbleFontScale provides bubbleFontScale,
         LocalBubbleStyle provides bubbleStyle,
-        LocalBubbleAccentColors provides bubbleAccentColors
-    ) {
-                LocalBubbleOpacities provides BubbleOpacities(
+        LocalBubbleAccentColors provides bubbleAccentColors,
+        LocalBubbleOpacities provides BubbleOpacities(
             received = uiState.thread?.receivedBubbleOpacity ?: 1f,
             sent = uiState.thread?.sentBubbleOpacity ?: 1f
         )
-    internal data class BubbleOpacities(
-    val received: Float = 1f,
-    val sent: Float = 1f
-)
-
-internal val LocalBubbleOpacities = compositionLocalOf { BubbleOpacities() }
+    ) {
     Box(
         Modifier
             .fillMaxSize()
