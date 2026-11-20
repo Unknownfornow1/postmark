@@ -71,6 +71,7 @@ class IncomingNotifier @Inject constructor(
         senderIsKnownContact: Boolean,
                 suggestedReplies: List<String> = emptyList(),
         isUpdate: Boolean = false
+                ) {
         val nm = context.getSystemService(NotificationManager::class.java)
         if (isUpdate && nm.activeNotifications.none { it.id == notifKey }) {
     return
