@@ -13,8 +13,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.mlkit.nl.smartreply.SmartReply
-import com.google.mlkit.nl.smartreply.SmartReplySuggestionResult
+import com.plusorminustwo.postmark.service.smartreply.SmartReplyEngine
 import com.plusorminustwo.postmark.data.contacts.lookupContactName
 import com.plusorminustwo.postmark.util.isDefaultSmsApp
 import com.plusorminustwo.postmark.data.db.entity.DELIVERY_STATUS_FAILED
@@ -169,11 +168,11 @@ class ThreadViewModel @Inject constructor(
     private val saveNumberPromptRepository: SaveNumberPromptRepository,
     private val gestureHintsRepo: GestureHintsRepository,
     private val voiceMemoRecorder: VoiceMemoRecorder,
-    private val activeThreadTracker: ActiveThreadTracker
+    private val activeThreadTracker: ActiveThreadTracker,
+    private val smartReplyEngine: SmartReplyEngine
 ) : ViewModel() {
 
     private val threadId: Long = checkNotNull(savedStateHandle["threadId"])
-    private val smartReplyClient = SmartReply.getClient()
     private val _smartReplies = MutableStateFlow<List<String>>(emptyList())
 val smartReplies: StateFlow<List<String>> = _smartReplies.asStateFlow()
 private var smartReplyRequestId = 0
@@ -869,23 +868,12 @@ private var smartReplyRequestId = 0
     val conversation = SmartReplyGenerator.createConversation(messages)
     if (conversation.isEmpty()) return
 
-    smartReplyClient.suggestReplies(conversation)
-        .addOnSuccessListener { result ->
-            if (requestId != smartReplyRequestId) return@addOnSuccessListener
-
-            _smartReplies.value =
-                if (result.status == SmartReplySuggestionResult.STATUS_SUCCESS) {
-                    result.suggestions.map { it.text }
-                } else {
-                    emptyList()
-                }
+    smartReplyEngine.suggestReplies(conversation) { suggestions ->
+        if (requestId == smartReplyRequestId) {
+            _smartReplies.value = suggestions
         }
-        .addOnFailureListener {
-            if (requestId == smartReplyRequestId) {
-                _smartReplies.value = emptyList()
-            }
-        }
-}
+    }
+    }
     fun sendSmartReply(reply: String) {
     if (reply.isBlank() ||
         _replyText.value.isNotBlank() ||
@@ -1395,7 +1383,6 @@ private var smartReplyRequestId = 0
         // the key must go too or a later restore would resurrect a uri to nothing.
         savedStateHandle.remove<String>(DRAFT_PREVIEW_MEMO_KEY)
         audioPlayer.release()
-        smartReplyClient.close()
         super.onCleared()
     }
 
