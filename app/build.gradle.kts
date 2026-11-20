@@ -172,7 +172,7 @@ dependencies {
     // message reactions — replaces the ~47-emoji hand-curated picker.
     implementation(libs.androidx.emoji2.emojipicker)
     implementation(libs.lottie.compose)
-
+    implementation(libs.mlkit.smart.reply)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
