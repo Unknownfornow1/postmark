@@ -134,5 +134,7 @@ class MuteThreadTest {
         override suspend fun updateChatBackground(threadId: Long, backgroundId: String?) {}
         override suspend fun countByChatBackground(id: String): Int = 0
         override suspend fun updateSentColor(threadId: Long, argb: Int?) {}
+        override suspend fun updateReceivedBubbleOpacity(threadId: Long, opacity: Float) {}
+        override suspend fun updateSentBubbleOpacity(threadId: Long, opacity: Float) {}
     }
 }
