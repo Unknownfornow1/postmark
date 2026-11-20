@@ -24,6 +24,7 @@ emoji2Emojipicker = "1.6.0"
 lottie = "6.7.1"
 mlKitSmartReply = "16.0.0-beta1"
 metricsPerformance = "1.0.0-beta02"
+playServicesBase = "18.11.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -67,6 +68,7 @@ media3-effect = { group = "androidx.media3", name = "media3-effect", version.ref
 androidx-emoji2-emojipicker = { group = "androidx.emoji2", name = "emoji2-emojipicker", version.ref = "emoji2Emojipicker" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 mlkit-smart-reply = { group = "com.google.android.gms", name = "play-services-mlkit-smart-reply", version.ref = "mlKitSmartReply" }
+play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
