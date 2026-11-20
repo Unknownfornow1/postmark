@@ -114,6 +114,21 @@ class ContactDetailViewModel @Inject constructor(
     fun setSentColor(argb: Int?) {
         viewModelScope.launch { threadRepository.setSentColor(threadId, argb) }
     }
+        // ── Bubble opacity ────────────────────────────────────────────────────────
+
+    /** Saves the received-bubble opacity for this thread. */
+    fun setReceivedBubbleOpacity(opacity: Float) {
+        viewModelScope.launch {
+            threadRepository.setReceivedBubbleOpacity(threadId, opacity)
+        }
+    }
+
+    /** Saves the sent-bubble opacity for this thread. */
+    fun setSentBubbleOpacity(opacity: Float) {
+        viewModelScope.launch {
+            threadRepository.setSentBubbleOpacity(threadId, opacity)
+        }
+    }
 
     // ── Chat background ───────────────────────────────────────────────────────
 
