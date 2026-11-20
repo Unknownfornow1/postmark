@@ -125,6 +125,14 @@ class ThreadRepository @Inject constructor(
     /** Saves a Postmark-only sent-bubble color (ARGB) for the thread; pass null to clear it. */
     suspend fun setSentColor(threadId: Long, argb: Int?) =
         dao.updateSentColor(threadId, argb)
+        
+    /** Saves the received-bubble opacity for this thread. */
+    suspend fun setReceivedBubbleOpacity(threadId: Long, opacity: Float) =
+        dao.updateReceivedBubbleOpacity(threadId, opacity.coerceIn(0f, 1f))
+
+    /** Saves the sent-bubble opacity for this thread. */
+    suspend fun setSentBubbleOpacity(threadId: Long, opacity: Float) =
+        dao.updateSentBubbleOpacity(threadId, opacity.coerceIn(0f, 1f))
 
     /** Number of threads whose chat-background override equals [id] — used to decide
      *  whether a custom image background is still referenced before deleting its file. */
