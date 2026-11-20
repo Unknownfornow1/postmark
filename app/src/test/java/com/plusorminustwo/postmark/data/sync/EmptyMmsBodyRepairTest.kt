@@ -314,6 +314,8 @@ private class RepairRecordingThreadDao : ThreadDao {
     override suspend fun updateAccentColor(threadId: Long, argb: Int?) = Unit
     override suspend fun updateChatBackground(threadId: Long, backgroundId: String?) = Unit
     override suspend fun updateSentColor(threadId: Long, argb: Int?) = Unit
+    override suspend fun updateReceivedBubbleOpacity(threadId: Long, opacity: Float) = Unit
+    override suspend fun updateSentBubbleOpacity(threadId: Long, opacity: Float) = Unit
     override suspend fun countByChatBackground(id: String): Int = 0
     override suspend fun deleteAll() = Unit
     override suspend fun count(): Int = 0
