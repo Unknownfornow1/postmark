@@ -329,6 +329,8 @@ private class FakeThreadDao : ThreadDao {
     override suspend fun updateChatBackground(threadId: Long, backgroundId: String?) = Unit
     override suspend fun countByChatBackground(id: String): Int = 0
     override suspend fun updateSentColor(threadId: Long, argb: Int?) = Unit
+    override suspend fun updateReceivedBubbleOpacity(threadId: Long, opacity: Float) = Unit
+    override suspend fun updateSentBubbleOpacity(threadId: Long, opacity: Float) = Unit
 }
 
 private class FakeStatsDao : StatsDao {
