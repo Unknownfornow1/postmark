@@ -89,9 +89,17 @@ class IncomingNotifier @Inject constructor(
         )
 
         // ── Reply action ──────────────────────────────────────────────────────────
-        val remoteInput = RemoteInput.Builder(DirectReplyReceiver.KEY_TEXT_REPLY)
+                val remoteInputBuilder = RemoteInput.Builder(DirectReplyReceiver.KEY_TEXT_REPLY)
             .setLabel(context.getString(R.string.reply))
-            .build()
+            .setAllowFreeFormInput(true)
+
+        if (!privacyMode && allowDirectReply && suggestedReplies.isNotEmpty()) {
+            remoteInputBuilder.setChoices(
+                suggestedReplies.map { it as CharSequence }.toTypedArray()
+            )
+        }
+
+        val remoteInput = remoteInputBuilder.build()
 
         val replyPendingIntent = PendingIntent.getBroadcast(
             context,
