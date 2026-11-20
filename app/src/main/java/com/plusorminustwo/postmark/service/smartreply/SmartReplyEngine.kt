@@ -4,7 +4,6 @@ import android.content.Context
 import com.google.android.gms.common.moduleinstall.ModuleInstall
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
 import com.google.mlkit.nl.smartreply.SmartReply
-import com.google.mlkit.nl.smartreply.SmartReplyClient
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
