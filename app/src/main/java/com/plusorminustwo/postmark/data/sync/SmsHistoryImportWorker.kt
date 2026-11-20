@@ -238,7 +238,7 @@ class SmsHistoryImportWorker @AssistedInject constructor(
 
         val smsTotal = messages.size
         messages.chunked(500).forEachIndexed { idx, chunk ->
-            messageRepository.insertAll(chunk)
+            messageRepository.insertAllPreservingReadState(chunk)
             // Report progress after each 500-message batch so the notification updates
             // smoothly as the DB writes complete.
             onProgress(minOf((idx + 1) * 500, smsTotal), smsTotal)
@@ -530,7 +530,7 @@ class SmsHistoryImportWorker @AssistedInject constructor(
             }
             persistedThreadIds += threadId
         }
-        messageRepository.insertAll(pending)
+        messageRepository.insertAllPreservingReadState(pending)
         pending.clear()
     }
 
