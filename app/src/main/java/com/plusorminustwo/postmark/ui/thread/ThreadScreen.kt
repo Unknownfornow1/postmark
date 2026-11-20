@@ -280,6 +280,11 @@ fun ThreadScreen(
     viewModel: ThreadViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val smartReplies by viewModel.smartReplies.collectAsState()
+
+LaunchedEffect(uiState.messages) {
+    viewModel.generateSmartReplies(uiState.messages)
+}
     val timestampPref by viewModel.timestampPreference.collectAsState()
     // What the selection bar's Copy action puts on the clipboard (Settings > Copying messages).
     val copyFormat by viewModel.copyFormat.collectAsState()
@@ -412,6 +417,9 @@ fun ThreadScreen(
     val onEnterSelectionMode      = remember(viewModel) { { viewModel.enterSelectionMode() } }
     val onReplyTextChanged        = remember(viewModel) { { text: String -> viewModel.onReplyTextChanged(text) } }
     val onSendMessage             = remember(viewModel) { { viewModel.sendMessage() } }
+    val onSmartReplyClick = remember(viewModel) {
+    { reply: String -> viewModel.sendSmartReply(reply) }
+    }
     val onToggleSelection         = remember(viewModel) { { id: Long -> viewModel.toggleSelection(id) } }
     val onShowReactionPicker      = remember(viewModel, haptics) {
         { id: Long, topY: Float, bottomY: Float ->
@@ -508,6 +516,8 @@ fun ThreadScreen(
         onEnterSelectionMode = onEnterSelectionMode,
         onReplyTextChanged = onReplyTextChanged,
         onSendMessage = onSendMessage,
+        smartReplies = smartReplies,
+        onSmartReplyClick = onSmartReplyClick,
         onToggleSelection = onToggleSelection,
         onShowReactionPicker = onShowReactionPicker,
         onToggleReaction = onToggleReaction,
@@ -655,6 +665,8 @@ private fun ThreadContent(
     onEnterSelectionMode: () -> Unit,
     onReplyTextChanged: (String) -> Unit,
     onSendMessage: () -> Unit,
+    smartReplies: List<String> = emptyList(),
+    onSmartReplyClick: (String) -> Unit = {},
     onToggleSelection: (Long) -> Unit,
     onShowReactionPicker: (Long, Float, Float) -> Unit,
     onToggleReaction: (Long, String) -> Unit,
@@ -1490,6 +1502,8 @@ private fun ThreadContent(
                     onRemoveAttachment    = onRemoveAttachment,
                     onClearReplyingTo     = onClearReplyingTo,
                     onSend                = { onSendMessage() },
+                    smartReplies          = smartReplies,
+                    onSmartReplyClick     = onSmartReplyClick,
                     onScheduleSend        = { showScheduleSendSheet = true },
                     voiceMemo             = voiceMemo,
                     onVoiceMemoEvent      = onVoiceMemoEvent,
@@ -3428,6 +3442,8 @@ private fun ReplyBar(
     onRemoveAttachment: (Int) -> Unit,
     onClearReplyingTo: () -> Unit = {},
     onSend: () -> Unit,
+    smartReplies: List<String> = emptyList(),
+    onSmartReplyClick: (String) -> Unit = {},
     // "Schedule send" from the send-options (+) menu. Only meaningful for a plain text
     // send (non-blank text, no pending attachments); the menu item enforces that gate.
     onScheduleSend: () -> Unit = {},
@@ -3725,7 +3741,23 @@ private fun ReplyBar(
                         }
                     }
                 }
-
+if (smartReplies.isNotEmpty() &&
+    text.isBlank() &&
+    pendingAttachments.isEmpty() &&
+    replyingTo == null
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(smartReplies) { reply ->
+            SuggestionChip(
+                onClick = { onSmartReplyClick(reply) },
+                label = { Text(reply) }
+            )
+        }
+    }
+}
                 // Input row. Idle: [attach] [field] [send-or-mic]. Recording (held):
                 // attach + field give way to the timer/hint row, but the mic button
                 // keeps its call site so the node under the user's finger — and the
