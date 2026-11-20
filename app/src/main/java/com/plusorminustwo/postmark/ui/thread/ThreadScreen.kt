@@ -1237,6 +1237,16 @@ private fun ThreadContent(
         LocalBubbleStyle provides bubbleStyle,
         LocalBubbleAccentColors provides bubbleAccentColors
     ) {
+                LocalBubbleOpacities provides BubbleOpacities(
+            received = uiState.thread?.receivedBubbleOpacity ?: 1f,
+            sent = uiState.thread?.sentBubbleOpacity ?: 1f
+        )
+    internal data class BubbleOpacities(
+    val received: Float = 1f,
+    val sent: Float = 1f
+)
+
+internal val LocalBubbleOpacities = compositionLocalOf { BubbleOpacities() }
     Box(
         Modifier
             .fillMaxSize()
@@ -2065,6 +2075,11 @@ private fun MessageBubble(
     // to the ambient LocalContentColor read below, unchanged from before. This stays
     // white/black-by-contrast — only the body TEXT gets cross-tinted (see below).
     val bubbleContentColor = if (message.isSent) accentColors.sentContent else accentColors.receivedContent
+    val bubbleOpacity = if (message.isSent) {
+    LocalBubbleOpacities.current.sent
+} else {
+    LocalBubbleOpacities.current.received
+    }
     // Cross-tinted body text: when the OTHER direction is customized, this bubble's text
     // takes that color rather than white/black — a green sent bubble gets orange text and
     // the orange received bubble gets green text. ContactPalette.crossTintedTextColor keeps
@@ -2092,8 +2107,12 @@ private fun MessageBubble(
     // read as gently lit rather than flat. remember keyed on the (rarely-changing) bubble
     // color so scrolling and audio-position ticks never re-derive it — only the brief
     // highlight animation recomputes, which is negligible.
-    val bubbleBrush = remember(bubbleColor) {
-        Brush.verticalGradient(ContactPalette.bubbleGradientStops(bubbleColor.toArgb()).map { Color(it) })
+    val bubbleBrush = remember(bubbleColor, bubbleOpacity) {
+    Brush.verticalGradient(
+        ContactPalette.bubbleGradientStops(bubbleColor.toArgb()).map {
+            Color(it).copy(alpha = bubbleOpacity)
+        }
+    )
     }
     // Arrival "pop": on top of the colour tint above, punch the bubble scale up briefly on
     // the rising edge of isHighlighted so the landing is unmistakable over any theme/photo
