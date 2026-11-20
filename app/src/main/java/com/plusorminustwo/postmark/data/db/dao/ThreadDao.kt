@@ -128,6 +128,14 @@ interface ThreadDao {
     /** Saves a Postmark-only sent-bubble color (ARGB) for the thread; pass null to clear it. */
     @Query("UPDATE threads SET sentColorArgb = :argb WHERE id = :threadId")
     suspend fun updateSentColor(threadId: Long, argb: Int?)
+    
+    /** Saves the received-bubble opacity for this thread. */
+    @Query("UPDATE threads SET receivedBubbleOpacity = :opacity WHERE id = :threadId")
+    suspend fun updateReceivedBubbleOpacity(threadId: Long, opacity: Float)
+
+    /** Saves the sent-bubble opacity for this thread. */
+    @Query("UPDATE threads SET sentBubbleOpacity = :opacity WHERE id = :threadId")
+    suspend fun updateSentBubbleOpacity(threadId: Long, opacity: Float)
 
     /** Number of threads whose per-thread chat-background override equals [id]. Feeds the
      *  orphan-cleanup decision for custom image backgrounds (Phase J). */
