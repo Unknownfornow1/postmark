@@ -385,6 +385,8 @@ fun ContactDetailScreen(
                         onOpenThemePresetPicker = { showThemePresetDialog = true },
                         onOpenColorPicker   = { showAccentColorDialog = true },
                         onOpenSentColorPicker = { showSentColorDialog = true },
+                        onReceivedOpacityChange = viewModel::setReceivedBubbleOpacity,
+                        onSentOpacityChange = viewModel::setSentBubbleOpacity,
                         onOpenChatBackgroundPicker = { showChatBackgroundDialog = true }
                     )
                 }
@@ -528,6 +530,8 @@ private fun ContactActionsSection(
     onOpenThemePresetPicker: () -> Unit,
     onOpenColorPicker: () -> Unit,
     onOpenSentColorPicker: () -> Unit,
+    onReceivedOpacityChange: (Float) -> Unit,
+    onSentOpacityChange: (Float) -> Unit,
     onOpenChatBackgroundPicker: () -> Unit
 ) {
     // Mute toggle row.
@@ -602,6 +606,33 @@ private fun ContactActionsSection(
         title = "Your bubble color",
         subtitle = accentSubtitle(sentArgb, "Applies to your sent messages"),
         onClick = onOpenSentColorPicker
+    )
+        // Received-bubble transparency.
+    Text(
+        text = "Their bubble opacity · ${(thread.receivedBubbleOpacity * 100).toInt()}%",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp)
+    )
+    Slider(
+        value = thread.receivedBubbleOpacity,
+        onValueChange = onReceivedOpacityChange,
+        valueRange = 0f..1f,
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
+
+    // Sent-bubble transparency.
+    Text(
+        text = "Your bubble opacity · ${(thread.sentBubbleOpacity * 100).toInt()}%",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)
+    )
+    Slider(
+        value = thread.sentBubbleOpacity,
+        onValueChange = onSentOpacityChange,
+        valueRange = 0f..1f,
+        modifier = Modifier.padding(horizontal = 16.dp)
     )
 
     // Chat background row — opens the preview-tile picker. thread.chatBackgroundId null
