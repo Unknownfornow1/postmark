@@ -293,7 +293,7 @@ abstract class PostmarkDatabase : RoomDatabase() {
                 )
             }
         }
-                val MIGRATION_23_24 = object : Migration(23, 24) {
+                        val MIGRATION_23_24 = object : Migration(23, 24) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Per-thread received and sent bubble opacity. Existing conversations
                 // retain the fully opaque appearance by default.
@@ -304,7 +304,7 @@ abstract class PostmarkDatabase : RoomDatabase() {
                     "ALTER TABLE threads ADD COLUMN sentBubbleOpacity REAL NOT NULL DEFAULT 1.0"
                 )
             }
-                }
+                        }
 
         val FTS_CALLBACK = object : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
