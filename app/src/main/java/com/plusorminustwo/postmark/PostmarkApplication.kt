@@ -33,6 +33,7 @@ class PostmarkApplication : Application(), Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var smsContentObserver: SmsContentObserver
     @Inject lateinit var backupScheduler: BackupScheduler
+    @Inject lateinit var smartReplyEngine: SmartReplyEngine
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
