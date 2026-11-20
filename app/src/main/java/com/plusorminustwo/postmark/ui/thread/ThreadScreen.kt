@@ -2116,6 +2116,18 @@ private fun MessageBubble(
     // Concrete content color for a contained audio chip (item 3): the message's own accent
     // content when customized, else the ambient content color the text bubble also uses.
     val chipContentColor = bubbleContentColor ?: LocalContentColor.current
+    val isEmojiOnly = message.body.isNotBlank() &&
+    message.body.codePoints().anyMatch { codePoint ->
+        codePoint in 0x1F000..0x1FAFF ||
+        codePoint in 0x2600..0x27BF
+    } &&
+    message.body.none { it.isLetterOrDigit() }
+
+val singleEmoji = message.body.trim()
+val canAnimateEmoji = isEmojiOnly &&
+    singleEmoji.codePoints().toArray()
+        .filter { it != 0xFE0F && it != 0xFE0E }
+        .size == 1
 
     val alignment = if (message.isSent) Alignment.End else Alignment.Start
 
@@ -2280,7 +2292,16 @@ private fun MessageBubble(
                         scaleX = s
                         scaleY = s
                     }
-                    .background(bubbleBrush, bubbleShape(bubbleStyle, message.isSent, clusterPosition))
+                    .then(
+    if (canAnimateEmoji) {
+        Modifier
+    } else {
+        Modifier.background(
+            bubbleBrush,
+            bubbleShape(bubbleStyle, message.isSent, clusterPosition)
+        )
+    }
+)
                     .then(
                         // Tighter padding when an attachment fills the bubble edges.
                         if (message.attachments.isNotEmpty())
@@ -2384,18 +2405,7 @@ private fun MessageBubble(
                     val annotated  = remember(message.body, linkColor, ctx) {
                         linkifyText(message.body, linkColor, ctx)
                     }
-                                        val isEmojiOnly = message.body.isNotBlank() &&
-    message.body.codePoints().anyMatch { codePoint ->
-        codePoint in 0x1F000..0x1FAFF ||
-        codePoint in 0x2600..0x27BF
-    } &&
-    message.body.none { it.isLetterOrDigit() }
-
-val singleEmoji = message.body.trim()
-val canAnimateEmoji = isEmojiOnly &&
-    singleEmoji.codePoints().toArray()
-        .filter { it != 0xFE0F && it != 0xFE0E }
-        .size == 1
+                                        
 
 if (canAnimateEmoji) {
     AnimatedEmojiBubble(emoji = singleEmoji)
