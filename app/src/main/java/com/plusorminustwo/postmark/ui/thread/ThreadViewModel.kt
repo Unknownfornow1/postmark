@@ -886,6 +886,19 @@ private var smartReplyRequestId = 0
             }
         }
 }
+    fun sendSmartReply(reply: String) {
+    if (reply.isBlank() ||
+        _replyText.value.isNotBlank() ||
+        _pendingAttachments.value.isNotEmpty() ||
+        _isSending.value
+    ) return
+
+    smartReplyRequestId++
+    _smartReplies.value = emptyList()
+    _replyText.value = reply
+    savedStateHandle[DRAFT_TEXT_KEY] = reply
+    sendMessage()
+    }
     fun dismissDefaultSmsDialog() { _showDefaultSmsDialog.value = false }
 
     /**
@@ -1382,6 +1395,7 @@ private var smartReplyRequestId = 0
         // the key must go too or a later restore would resurrect a uri to nothing.
         savedStateHandle.remove<String>(DRAFT_PREVIEW_MEMO_KEY)
         audioPlayer.release()
+        smartReplyClient.close()
         super.onCleared()
     }
 
