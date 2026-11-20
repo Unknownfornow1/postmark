@@ -70,6 +70,9 @@ class MarkAsReadReceiver : BroadcastReceiver() {
                         // update or the notification dismissal in `finally` below.
                     }
                 }
+                                if (threadId > 0L) {
+                    messageRepository.markAllRead(threadId)
+                                }
             } finally {
                 val nm = context.getSystemService(NotificationManager::class.java)
 
