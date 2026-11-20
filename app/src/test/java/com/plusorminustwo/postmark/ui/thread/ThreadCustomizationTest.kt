@@ -135,6 +135,9 @@ class ThreadCustomizationTest {
         override suspend fun updateSentColor(threadId: Long, argb: Int?) {
             lastSentColorUpdate = threadId to argb
         }
+        override suspend fun updateReceivedBubbleOpacity(threadId: Long, opacity: Float) = Unit
+
+        override suspend fun updateSentBubbleOpacity(threadId: Long, opacity: Float) = Unit
 
         override suspend fun countByChatBackground(id: String): Int {
             lastCountByChatBackgroundId = id
