@@ -36,9 +36,15 @@ class SmartReplyEngine @Inject constructor(
     }
 
     fun suggestReplies(
-        conversation: List<com.google.mlkit.nl.smartreply.TextMessage>,
-        onResult: (List<String>) -> Unit
-    ) {
+    conversation: List<com.google.mlkit.nl.smartreply.TextMessage>,
+    onResult: (List<String>) -> Unit
+) {
+    isModelAvailable { isAvailable ->
+        if (!isAvailable) {
+            onResult(emptyList())
+            return@isModelAvailable
+        }
+
         client.suggestReplies(conversation)
             .addOnSuccessListener { result ->
                 onResult(
@@ -55,4 +61,4 @@ class SmartReplyEngine @Inject constructor(
                 onResult(emptyList())
             }
     }
-}
+    }
