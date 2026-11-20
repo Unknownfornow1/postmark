@@ -70,6 +70,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.emoji2.emojipicker.EmojiPickerView
 import com.airbnb.lottie.LottieComposition
@@ -3885,6 +3887,9 @@ if (smartReplies.isNotEmpty() &&
     },
                                     placeholder   = { Text("Message") },
                                     maxLines      = 4,
+                                    keyboardOptions = KeyboardOptions(
+    capitalization = KeyboardCapitalization.Sentences
+),
                                     colors        = TextFieldDefaults.colors(
                                         focusedContainerColor   = MaterialTheme.colorScheme.surfaceContainerHighest,
                                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
