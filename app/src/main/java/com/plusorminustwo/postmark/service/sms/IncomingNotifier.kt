@@ -69,9 +69,12 @@ class IncomingNotifier @Inject constructor(
         privacyMode: Boolean,
         allowDirectReply: Boolean,
         senderIsKnownContact: Boolean,
-        suggestedReplies: List<String> = emptyList()
-    ) {
+                suggestedReplies: List<String> = emptyList(),
+        isUpdate: Boolean = false
         val nm = context.getSystemService(NotificationManager::class.java)
+        if (isUpdate && nm.activeNotifications.none { it.id == notifKey }) {
+    return
+        }
 
         // ── Privacy mode: redact sender and body so bystanders can't read the screen ──
         val displayTitle = if (privacyMode) context.getString(R.string.privacy_mode_notification_title) else title
@@ -221,9 +224,11 @@ class IncomingNotifier @Inject constructor(
                 ?.notification
                 ?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
                 ?.messages
-                ?.takeLast(MAX_CARRIED_MESSAGES - 1)
+                ?.takeLast(if (isUpdate) MAX_CARRIED_MESSAGES else MAX_CARRIED_MESSAGES - 1)
                 ?.forEach { style.addMessage(it.text, it.timestamp, it.person) }
-            style.addMessage(displayBody, System.currentTimeMillis(), person)
+            if (!isUpdate) {
+    style.addMessage(displayBody, System.currentTimeMillis(), person)
+            }
             if (!allowDirectReply) {
                 style.isGroupConversation = true
                 style.conversationTitle = conversationTitle
