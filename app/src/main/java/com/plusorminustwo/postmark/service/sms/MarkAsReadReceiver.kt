@@ -26,8 +26,8 @@ import kotlinx.coroutines.launch
  *  2. Cancels the individual notification so it disappears from the shade.
  *  3. Cancels the group summary notification if no other SMS notifications remain.
  *
- * No Room interaction is needed — [com.plusorminustwo.postmark.data.sync.SmsContentObserver]
- * will pick up the provider change and update the local database via the normal sync path.
+ * The receiver also marks the corresponding Room messages as read directly,
+ * keeping the local database and Android's telephony provider in sync.
  *
  * Requires WRITE_SMS (already declared in AndroidManifest).
  */
