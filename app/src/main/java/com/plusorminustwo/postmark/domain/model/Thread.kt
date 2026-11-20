@@ -59,8 +59,11 @@ data class Thread(
     val accentColorArgb: Int? = null,
     // Postmark-only chat background id. Null falls back to the global default.
     val chatBackgroundId: String? = null,
-    // Postmark-only sent-bubble color (ARGB), independent of accentColorArgb. Null = default.
+        // Postmark-only sent-bubble color (ARGB), independent of accentColorArgb. Null = default.
     val sentColorArgb: Int? = null,
+    // Per-thread opacity for received and sent message bubbles. 1f keeps them fully opaque.
+    val receivedBubbleOpacity: Float = 1f,
+    val sentBubbleOpacity: Float = 1f,
     // When true the thread lives in the Spam folder: hidden from every list surface and
     // silenced. Postmark-only; never written to the telephony provider.
     val isSpam: Boolean = false
