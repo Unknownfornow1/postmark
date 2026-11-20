@@ -13,6 +13,8 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.mlkit.nl.smartreply.SmartReply
+import com.google.mlkit.nl.smartreply.SmartReplySuggestionResult
 import com.plusorminustwo.postmark.data.contacts.lookupContactName
 import com.plusorminustwo.postmark.util.isDefaultSmsApp
 import com.plusorminustwo.postmark.data.db.entity.DELIVERY_STATUS_FAILED
@@ -171,7 +173,10 @@ class ThreadViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val threadId: Long = checkNotNull(savedStateHandle["threadId"])
-
+    private val smartReplyClient = SmartReply.getClient()
+    private val _smartReplies = MutableStateFlow<List<String>>(emptyList())
+val smartReplies: StateFlow<List<String>> = _smartReplies.asStateFlow()
+private var smartReplyRequestId = 0
     /**
      * Registers this thread as the on-screen conversation so incoming SMS/MMS for it skip
      * the notification banner. Driven by ThreadScreen's ON_RESUME/ON_PAUSE so the tracker
@@ -853,7 +858,34 @@ class ThreadViewModel @Inject constructor(
         _replyText.value = text
         savedStateHandle[DRAFT_TEXT_KEY] = text
     }
+    fun generateSmartReplies(messages: List<Message>) {
+    val requestId = ++smartReplyRequestId
+    _smartReplies.value = emptyList()
 
+    if (messages.lastOrNull { it.body.isNotBlank() }?.isSent != false) {
+        return
+    }
+
+    val conversation = SmartReplyGenerator.createConversation(messages)
+    if (conversation.isEmpty()) return
+
+    smartReplyClient.suggestReplies(conversation)
+        .addOnSuccessListener { result ->
+            if (requestId != smartReplyRequestId) return@addOnSuccessListener
+
+            _smartReplies.value =
+                if (result.status == SmartReplySuggestionResult.STATUS_SUCCESS) {
+                    result.suggestions.map { it.text }
+                } else {
+                    emptyList()
+                }
+        }
+        .addOnFailureListener {
+            if (requestId == smartReplyRequestId) {
+                _smartReplies.value = emptyList()
+            }
+        }
+}
     fun dismissDefaultSmsDialog() { _showDefaultSmsDialog.value = false }
 
     /**
