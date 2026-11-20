@@ -60,7 +60,7 @@ class IncomingNotifier @Inject constructor(
      *                    (and the thread is 1:1 with a real thread id), a "Report spam" action
      *                    is offered — from a contact you know it would only be noise.
      */
-    fun notify(
+        fun notify(
         notifKey: Int,
         threadId: Long,
         address: String,
@@ -68,7 +68,8 @@ class IncomingNotifier @Inject constructor(
         body: String,
         privacyMode: Boolean,
         allowDirectReply: Boolean,
-        senderIsKnownContact: Boolean
+        senderIsKnownContact: Boolean,
+        suggestedReplies: List<String> = emptyList()
     ) {
         val nm = context.getSystemService(NotificationManager::class.java)
 
