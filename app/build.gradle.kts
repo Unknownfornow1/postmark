@@ -173,6 +173,7 @@ dependencies {
     implementation(libs.androidx.emoji2.emojipicker)
     implementation(libs.lottie.compose)
     implementation(libs.mlkit.smart.reply)
+    implementation(libs.play.services.base)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
