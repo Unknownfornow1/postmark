@@ -7,6 +7,9 @@ import android.content.Intent
 import androidx.core.app.RemoteInput
 import com.plusorminustwo.postmark.PostmarkApplication
 import dagger.hilt.android.AndroidEntryPoint
+import android.content.ContentValues
+import android.provider.Telephony
+import com.plusorminustwo.postmark.data.repository.MessageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,10 +35,12 @@ import javax.inject.Inject
 class DirectReplyReceiver : BroadcastReceiver() {
 
     @Inject lateinit var smsManagerWrapper: SmsManagerWrapper
+        @Inject lateinit var messageRepository: MessageRepository
 
     override fun onReceive(context: Context, intent: Intent) {
         val address = intent.getStringExtra(EXTRA_ADDRESS) ?: return
         val notifId = intent.getIntExtra(EXTRA_NOTIF_ID, 0)
+        val threadId = intent.getLongExtra(EXTRA_THREAD_ID, -1L)
 
         val replyText = RemoteInput.getResultsFromIntent(intent)
             ?.getCharSequence(KEY_TEXT_REPLY)
@@ -49,6 +54,25 @@ class DirectReplyReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 smsManagerWrapper.sendTextMessage(address, replyText, -System.currentTimeMillis())
+                                ConversationReadMarker.buildUpdates(threadId, address).forEach { update ->
+                    try {
+                        val uri = when (update.table) {
+                            ConversationReadMarker.Table.SMS -> Telephony.Sms.CONTENT_URI
+                            ConversationReadMarker.Table.MMS -> Telephony.Mms.CONTENT_URI
+                        }
+                        context.contentResolver.update(
+                            uri,
+                            ContentValues().apply { put(Telephony.Sms.READ, 1) },
+                            update.selection,
+                            update.selectionArgs.toTypedArray()
+                        )
+                    } catch (e: Exception) {
+                    }
+                }
+
+                if (threadId > 0L) {
+                    messageRepository.markAllRead(threadId)
+                }
             } finally {
                 val nm = context.getSystemService(NotificationManager::class.java)
 
@@ -76,5 +100,6 @@ class DirectReplyReceiver : BroadcastReceiver() {
         const val KEY_TEXT_REPLY  = "key_text_reply"
         const val EXTRA_ADDRESS   = "extra_direct_reply_address"
         const val EXTRA_NOTIF_ID  = "extra_direct_reply_notif_id"
+        const val EXTRA_THREAD_ID = "extra_direct_reply_thread_id"
     }
 }
