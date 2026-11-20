@@ -37,6 +37,10 @@ data class ThreadEntity(
     // Postmark-only sent-bubble fill (ARGB), independent of accentColorArgb. Null means
     // use the default primaryContainer.
     val sentColorArgb: Int? = null,
+    // Per-thread opacity for received and sent message bubbles. 1f keeps the current
+    // fully opaque appearance; lower values allow the chat background to show through.
+    val receivedBubbleOpacity: Float = 1f,
+    val sentBubbleOpacity: Float = 1f,
     // When true the thread is hidden from the main conversation list (and every other
     // list surface) into the Spam folder, and posts no incoming notifications.
     val isSpam: Boolean = false
