@@ -7,6 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
 import com.plusorminustwo.postmark.PostmarkApplication
+import com.plusorminustwo.postmark.data.repository.MessageRepository
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +31,11 @@ import kotlinx.coroutines.launch
  *
  * Requires WRITE_SMS (already declared in AndroidManifest).
  */
+@AndroidEntryPoint
 class MarkAsReadReceiver : BroadcastReceiver() {
+
+    @Inject
+    lateinit var messageRepository: MessageRepository
 
     override fun onReceive(context: Context, intent: Intent) {
         val address  = intent.getStringExtra(EXTRA_ADDRESS) ?: return
