@@ -111,6 +111,7 @@ class IncomingNotifier @Inject constructor(
             Intent(context, DirectReplyReceiver::class.java).apply {
                 putExtra(DirectReplyReceiver.EXTRA_ADDRESS, address)
                 putExtra(DirectReplyReceiver.EXTRA_NOTIF_ID, notifKey)
+                putExtra(DirectReplyReceiver.EXTRA_THREAD_ID, threadId)
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
