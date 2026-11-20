@@ -65,6 +65,8 @@ fun ThreadEntity.toDomain() = Thread(
     accentColorArgb = accentColorArgb,
     chatBackgroundId = chatBackgroundId,
     sentColorArgb = sentColorArgb,
+    receivedBubbleOpacity = receivedBubbleOpacity,
+    sentBubbleOpacity = sentBubbleOpacity,
     isSpam = isSpam
 )
 
@@ -84,8 +86,10 @@ fun Thread.toEntity() = ThreadEntity(
     notificationsEnabled = notificationsEnabled,
     nickname = nickname,
     participantsJson = encodeParticipantsJson(participants),
-    accentColorArgb = accentColorArgb,
+        accentColorArgb = accentColorArgb,
     chatBackgroundId = chatBackgroundId,
     sentColorArgb = sentColorArgb,
+    receivedBubbleOpacity = receivedBubbleOpacity,
+    sentBubbleOpacity = sentBubbleOpacity,
     isSpam = isSpam
 )
