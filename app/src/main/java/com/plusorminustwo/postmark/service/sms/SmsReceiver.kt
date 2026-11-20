@@ -140,18 +140,53 @@ class SmsReceiver : BroadcastReceiver() {
                              * incoming SMS today (group traffic is MMS); correct future-
                              * proofing for when MMS notifications land (P3). */
                             val isGroupThread = (thread?.participants?.size ?: 0) > 1
-                            incomingNotifier.notify(
-                                notifKey = rawSender.hashCode(),
-                                threadId = threadId,
-                                address = rawSender,
-                                title = displayName,
-                                body = body,
-                                privacyMode = privacyModeRepository.isEnabled(),
-                                allowDirectReply = !isGroupThread,
-                                // Contact-name lookup (above) is the known-contact signal; a
-                                // blank/null result means an unsaved number → offer Report spam.
-                                senderIsKnownContact = !contactName.isNullOrBlank()
-                            )
+                            val privacyMode = privacyModeRepository.isEnabled()
+val notifKey = rawSender.hashCode()
+val allowDirectReply = !isGroupThread
+val senderIsKnownContact = !contactName.isNullOrBlank()
+
+// Show the notification immediately, without waiting for Smart Reply.
+incomingNotifier.notify(
+    notifKey = notifKey,
+    threadId = threadId,
+    address = rawSender,
+    title = displayName,
+    body = body,
+    privacyMode = privacyMode,
+    allowDirectReply = allowDirectReply,
+    senderIsKnownContact = senderIsKnownContact
+)
+
+// Smart Reply is optional: never generate suggestions in privacy mode or group threads.
+if (!privacyMode && !isGroupThread && threadId > 0L) {
+    val conversationMessages = messageRepository.getByThread(threadId)
+    val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
+
+    if (lastMessage?.isSent == false) {
+        val conversation = SmartReplyGenerator.createConversation(conversationMessages)
+
+        if (conversation.isNotEmpty()) {
+            smartReplyEngine.suggestReplies(conversation) { suggestions ->
+                if (suggestions.isNotEmpty()) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        incomingNotifier.notify(
+                            notifKey = notifKey,
+                            threadId = threadId,
+                            address = rawSender,
+                            title = displayName,
+                            body = body,
+                            privacyMode = privacyMode,
+                            allowDirectReply = allowDirectReply,
+                            senderIsKnownContact = senderIsKnownContact,
+                            suggestedReplies = suggestions,
+                            isUpdate = true
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
                         }
                     } finally {
                         pendingResult.finish()
