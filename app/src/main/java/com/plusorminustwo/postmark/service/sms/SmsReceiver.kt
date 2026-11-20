@@ -17,6 +17,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.plusorminustwo.postmark.data.repository.MessageRepository
+import com.plusorminustwo.postmark.service.smartreply.SmartReplyEngine
+import com.plusorminustwo.postmark.ui.thread.SmartReplyGenerator
 
 /**
  * [BroadcastReceiver] that handles incoming SMS messages.
@@ -35,6 +38,8 @@ class SmsReceiver : BroadcastReceiver() {
 
     @Inject lateinit var syncHandler: SmsSyncHandler
     @Inject lateinit var threadRepository: ThreadRepository
+    @Inject lateinit var messageRepository: MessageRepository
+    @Inject lateinit var smartReplyEngine: SmartReplyEngine
     @Inject lateinit var privacyModeRepository: PrivacyModeRepository
     @Inject lateinit var syncLogger: SyncLogger
     @Inject lateinit var incomingNotifier: IncomingNotifier
