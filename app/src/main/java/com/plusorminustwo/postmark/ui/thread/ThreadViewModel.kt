@@ -65,6 +65,7 @@ import com.plusorminustwo.postmark.domain.customization.TimestampPreference
 import com.plusorminustwo.postmark.service.audio.VoiceMemoRecorder
 import com.plusorminustwo.postmark.service.customization.ChatBackgroundImageStore
 import com.plusorminustwo.postmark.service.sms.ActiveThreadTracker
+import com.plusorminustwo.postmark.service.sms.ConversationReadMarker
 import com.plusorminustwo.postmark.service.sms.MmsManagerWrapper
 import com.plusorminustwo.postmark.service.reminder.MessageReminderWorker
 import com.plusorminustwo.postmark.service.scheduled.ScheduledSendWorker
@@ -207,10 +208,35 @@ private var smartReplyRequestId = 0
     private fun sendRecipientsFor(thread: Thread): List<String> =
         if (groupSendSupported) recipientsFor(thread) else listOf(thread.address)
 
-    init {
-        // Mark all messages in this thread as read as soon as the thread is opened.
-        viewModelScope.launch { messageRepository.markAllRead(threadId) }
-    }
+        init {
+        // Mark this conversation as read in both Room and the system SMS/MMS provider.
+        viewModelScope.launch {
+            messageRepository.markAllRead(threadId)
+
+            val address = threadRepository.getById(threadId)?.address.orEmpty()
+
+            withContext(Dispatchers.IO) {
+                ConversationReadMarker.buildUpdates(threadId, address).forEach { update ->
+                    try {
+                        val uri = when (update.table) {
+                            ConversationReadMarker.Table.SMS -> Telephony.Sms.CONTENT_URI
+                            ConversationReadMarker.Table.MMS -> Telephony.Mms.CONTENT_URI
+                        }
+
+                        context.contentResolver.update(
+                            uri,
+                            android.content.ContentValues().apply {
+                                put(Telephony.Sms.READ, 1)
+                            },
+                            update.selection,
+                            update.selectionArgs.toTypedArray()
+                        )
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        }
+        }
 
     private val _selectionState  = MutableStateFlow(emptySet<Long>())
     private val _isSelectionMode = MutableStateFlow(false)
