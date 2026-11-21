@@ -1537,15 +1537,14 @@ private fun ThreadContent(
             }
         }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .then(
-                    if (chatBackgroundBrush != null) Modifier.background(chatBackgroundBrush)
-                    else Modifier
-                )
-        ) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (chatBackgroundBrush != null) Modifier.background(chatBackgroundBrush)
+                else Modifier
+            )
+    ) {
             // Custom image background (Phase J): fills the Box behind the LazyColumn,
             // cropped to fill, under a theme-aware legibility scrim (Black/White @ 40%).
             if (chatBackgroundImageFile != null) {
@@ -1567,7 +1566,7 @@ private fun ThreadContent(
                         )
                 )
             }
-            Column(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize().padding(padding)) {
                 // Suspected-spam banner in normal content flow at the top of the message area:
                 // below the top bar (scaffold inner padding) and above the list, so it never
                 // overlaps a message and respects the same insets as the bubbles below it.
