@@ -54,6 +54,14 @@ jobs:
         # measure those.
         run: ./gradlew assembleStaging --no-daemon
 
+        
+      - name: Upload staging APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-apk-${{ env.APP_VERSION_CODE }}
+          path: app/build/outputs/apk/staging/app-staging.apk
+          if-no-files-found: error
+
       - name: Archive R8 mapping
         # Staging is minified, so tester crash traces are obfuscated. Keep the
         # mapping.txt for each shipped build or those traces are unreadable.
