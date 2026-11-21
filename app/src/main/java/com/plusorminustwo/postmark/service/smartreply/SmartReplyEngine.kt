@@ -1,9 +1,12 @@
+
 package com.plusorminustwo.postmark.service.smartreply
 
 import android.content.Context
 import com.google.android.gms.common.moduleinstall.ModuleInstall
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
 import com.google.mlkit.nl.smartreply.SmartReply
+import com.google.mlkit.nl.smartreply.TextMessage
+import com.google.mlkit.nl.smartreply.SmartReplySuggestionResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,12 +18,13 @@ class SmartReplyEngine @Inject constructor(
     private val client = SmartReply.getClient()
     private val moduleInstallClient = ModuleInstall.getClient(context)
 
-    fun installModel() {
-        val request = ModuleInstallRequest.Builder()
-            .addApi(client)
-            .build()
+    private val lock = Any()
+    private var installationInProgress = false
+    private val pendingRequests =
+        mutableListOf<Pair<List<TextMessage>, (List<String>) -> Unit>>()
 
-        moduleInstallClient.installModules(request)
+    fun installModel() {
+        startModelInstallation()
     }
 
     fun isModelAvailable(
@@ -36,20 +40,68 @@ class SmartReplyEngine @Inject constructor(
     }
 
     fun suggestReplies(
-    conversation: List<com.google.mlkit.nl.smartreply.TextMessage>,
-    onResult: (List<String>) -> Unit
-) {
-    isModelAvailable { isAvailable ->
-        if (!isAvailable) {
-            onResult(emptyList())
-            return@isModelAvailable
+        conversation: List<TextMessage>,
+        onResult: (List<String>) -> Unit
+    ) {
+        isModelAvailable { isAvailable ->
+            if (isAvailable) {
+                requestSuggestions(conversation, onResult)
+            } else {
+                synchronized(lock) {
+                    pendingRequests.add(conversation to onResult)
+                }
+                startModelInstallation()
+            }
+        }
+    }
+
+    private fun startModelInstallation() {
+        synchronized(lock) {
+            if (installationInProgress) return
+            installationInProgress = true
         }
 
+        val request = ModuleInstallRequest.Builder()
+            .addApi(client)
+            .build()
+
+        moduleInstallClient.installModules(request)
+            .addOnSuccessListener {
+                isModelAvailable { available ->
+                    finishInstallation(available)
+                }
+            }
+            .addOnFailureListener {
+                finishInstallation(false)
+            }
+    }
+
+    private fun finishInstallation(available: Boolean) {
+        val requests = synchronized(lock) {
+            installationInProgress = false
+            pendingRequests.toList().also {
+                pendingRequests.clear()
+            }
+        }
+
+        requests.forEach { (conversation, onResult) ->
+            if (available) {
+                requestSuggestions(conversation, onResult)
+            } else {
+                onResult(emptyList())
+            }
+        }
+    }
+
+    private fun requestSuggestions(
+        conversation: List<TextMessage>,
+        onResult: (List<String>) -> Unit
+    ) {
         client.suggestReplies(conversation)
             .addOnSuccessListener { result ->
                 onResult(
                     if (result.status ==
-                        com.google.mlkit.nl.smartreply.SmartReplySuggestionResult.STATUS_SUCCESS
+                        SmartReplySuggestionResult.STATUS_SUCCESS
                     ) {
                         result.suggestions.map { it.text }
                     } else {
@@ -60,6 +112,5 @@ class SmartReplyEngine @Inject constructor(
             .addOnFailureListener {
                 onResult(emptyList())
             }
-    }
     }
 }
