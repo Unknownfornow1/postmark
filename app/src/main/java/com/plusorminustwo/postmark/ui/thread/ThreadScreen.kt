@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.emoji2.emojipicker.EmojiPickerView
@@ -3506,6 +3507,7 @@ private fun ReplyBar(
     var showAttachMenu by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     // Collected once here (not per chip) — the map changes only when a take is
     // stored/removed, so a single subscription feeds every chip its resolved value.
     val waveforms by memoWaveforms.collectAsState()
@@ -3890,9 +3892,13 @@ if (smartReplies.isNotEmpty() &&
                         }
                         IconButton(
     onClick = {
-        showEmojiPicker = !showEmojiPicker
+    val opening = !showEmojiPicker
+    showEmojiPicker = opening
+    if (opening) {
+        focusManager.clearFocus(force = true)
         keyboardController?.hide()
-    },
+    }
+},
     modifier = Modifier.size(40.dp)
 ) {
     Icon(
