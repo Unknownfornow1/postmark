@@ -155,9 +155,9 @@ class SmsSyncHandler @Inject constructor(
      * Used by SmsReceiver before building a notification that needs the new
      * message to be present in Room.
      */
-    suspend fun syncSmsNow() = withContext(Dispatchers.IO) {
-        smsMutex.withLock { syncLatestSms() }
-    }
+            suspend fun syncSmsNow(providerRowId: Long? = null) = withContext(Dispatchers.IO) {
+        smsMutex.withLock { syncLatestSms(providerRowId) }
+            }
 
     /**
      * Reconciles Room unread flags with the system SMS/MMS provider.
@@ -420,11 +420,13 @@ class SmsSyncHandler @Inject constructor(
      * (re-running when there are no new messages returns 0 rows instantly).
      * Bails when DB is empty (initial sync not yet done) — the worker owns that pass.
      */
-    private suspend fun syncLatestSms() {
-        // Nothing in DB yet → full sync not done; do not interfere with worker.
+        private suspend fun syncLatestSms(providerRowId: Long? = null) {
         val maxKnownId = messageRepository.getMaxId() ?: 0L
-        if (maxKnownId <= 0L) return
+        val isFirstRoomMessage = maxKnownId <= 0L
 
+        // When Room is empty, import only the exact SMS row just persisted by SmsReceiver.
+        // The history worker remains responsible for importing the older backlog.
+        if (isFirstRoomMessage && (providerRowId == null || providerRowId <= 0L)) return
         val projection = arrayOf(
             Telephony.Sms._ID,
             Telephony.Sms.THREAD_ID,
@@ -437,7 +439,14 @@ class SmsSyncHandler @Inject constructor(
 
         // Fetch every SMS row we haven't seen yet, oldest-first so thread
         // metadata (lastMessageAt/Preview) ends up reflecting the true latest.
-        val selectionArgs = arrayOf(maxKnownId.toString())
+        val selection = if (isFirstRoomMessage) {
+    "${Telephony.Sms._ID} = ?"
+} else {
+    selection
+}
+val selectionArgs = arrayOf(
+    (if (isFirstRoomMessage) providerRowId else maxKnownId).toString()
+)
         val sortOrder = "${Telephony.Sms._ID} ASC"
         val primaryCursor = context.contentResolver.query(
             Telephony.Sms.CONTENT_URI,
@@ -455,7 +464,7 @@ class SmsSyncHandler @Inject constructor(
             val sentCursor = context.contentResolver.query(
                 Uri.parse("content://sms/sent"),
                 projection,
-                "${Telephony.Sms._ID} > ?",
+                selection,
                 selectionArgs,
                 sortOrder
             )
@@ -467,7 +476,7 @@ class SmsSyncHandler @Inject constructor(
                 context.contentResolver.query(
                     Uri.parse(uriStr),
                     projection,
-                    "${Telephony.Sms._ID} > ?",
+                    selection,
                     selectionArgs,
                     sortOrder
                 )
