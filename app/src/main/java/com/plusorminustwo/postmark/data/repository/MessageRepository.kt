@@ -90,6 +90,9 @@ class MessageRepository @Inject constructor(
      *  light the unread badge via the existing pipeline. Backs the conversations-list
      *  "Mark unread" bulk action. */
     suspend fun markLatestUnread(threadId: Long) = messageDao.markLatestUnread(threadId)
+    suspend fun getUnreadProviderMessages() = messageDao.getUnreadProviderMessages()
+
+suspend fun markMessagesRead(ids: List<Long>) = messageDao.markMessagesRead(ids)
 
     // Emits a live Map<threadId, unreadCount> for driving unread badges.
     fun observeUnreadCounts(): Flow<Map<Long, Int>> =
