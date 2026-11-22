@@ -106,6 +106,7 @@ class SmsSentDeliveryReceiver : BroadcastReceiver() {
 
                             when (decision) {
                                 is MultipartSendTracker.Decision.MarkSent -> {
+                                    mirrorProviderStatus(context, smsRowId, Telephony.Sms.STATUS_COMPLETE)
                                     messageRepository.updateDeliveryStatus(roomId, DELIVERY_STATUS_SENT)
                                     /* Recovery: the radio confirmed the send but the pre-send
                                      * insert into content://sms/sent never produced a row
@@ -183,6 +184,7 @@ class SmsSentDeliveryReceiver : BroadcastReceiver() {
         syncLogger.log("SmsSentDelivery", "SMS_SENT (legacy, no part extras) roomId=$roomId smsRowId=$smsRowId result=$label")
         when {
             isSendOk -> {
+                mirrorProviderStatus(context, smsRowId, Telephony.Sms.STATUS_COMPLETE)
                 messageRepository.updateDeliveryStatus(roomId, DELIVERY_STATUS_SENT)
                 if (shouldRecoverSentRow(true, smsRowId, address)) {
                     recoverMissingSentRow(context, address!!, intent.getStringExtra(EXTRA_BODY) ?: "")
