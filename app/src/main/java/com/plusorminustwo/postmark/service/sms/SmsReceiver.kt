@@ -201,7 +201,6 @@ val senderIsKnownContact = !contactName.isNullOrBlank()
      * OEM ROMs that don't auto-assign it can't create duplicate threads for the same
      * contact. PROTOCOL = 0 distinguishes SMS from WAP push (= 1).
      */
-    private fun persistToSystemStore(
         private fun persistToSystemStore(
         context: Context,
         rawSender: String,
