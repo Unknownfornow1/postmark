@@ -10,6 +10,8 @@ import com.google.mlkit.nl.smartreply.SmartReplySuggestionResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 @Singleton
 class SmartReplyEngine @Inject constructor(
@@ -51,6 +53,27 @@ class SmartReplyEngine @Inject constructor(
                     pendingRequests.add(conversation to onResult)
                 }
                 startModelInstallation()
+            }
+        }
+    }
+        /**
+     * Generates suggestions only when the model is already available.
+     * Unlike suggestReplies(), this never starts a model installation.
+     */
+    suspend fun suggestRepliesIfAvailable(
+        conversation: List<TextMessage>
+    ): List<String> = suspendCancellableCoroutine { continuation ->
+        isModelAvailable { isAvailable ->
+            if (!continuation.isActive) return@isModelAvailable
+
+            if (isAvailable) {
+                requestSuggestions(conversation) { suggestions ->
+                    if (continuation.isActive) {
+                        continuation.resume(suggestions)
+                    }
+                }
+            } else {
+                continuation.resume(emptyList())
             }
         }
     }
