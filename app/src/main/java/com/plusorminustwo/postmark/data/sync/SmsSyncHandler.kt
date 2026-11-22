@@ -150,6 +150,14 @@ class SmsSyncHandler @Inject constructor(
     fun onSmsContentChanged(@Suppress("UNUSED_PARAMETER") uri: Uri) {
         smsWorkChannel.trySend(Unit)
     }
+        /**
+     * Runs the incremental SMS sync immediately and waits for it to finish.
+     * Used by SmsReceiver before building a notification that needs the new
+     * message to be present in Room.
+     */
+    suspend fun syncSmsNow() = withContext(Dispatchers.IO) {
+        smsMutex.withLock { syncLatestSms() }
+    }
 
     /** Signal from MmsReceiver or SmsContentObserver — coalesced into the channel. */
     fun onMmsContentChanged(@Suppress("UNUSED_PARAMETER") uri: Uri) {
