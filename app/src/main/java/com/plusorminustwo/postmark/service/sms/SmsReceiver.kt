@@ -184,18 +184,6 @@ incomingNotifier.notify(
     suggestedReplies = suggestedReplies
 )
 
-// Smart Reply is optional: never generate suggestions in privacy mode or group threads.
-if (!privacyMode && !isGroupThread && threadId > 0L) {
-    val conversationMessages = messageRepository.getByThread(threadId)
-    val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
-
-    if (lastMessage?.isSent == false) {
-        val conversation = SmartReplyGenerator.createConversation(conversationMessages)
-
-        if (conversation.isNotEmpty()) {
-            smartReplyEngine.suggestReplies(conversation) { suggestions ->
-                if (suggestions.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
                         incomingNotifier.notify(
                             notifKey = notifKey,
                             threadId = threadId,
