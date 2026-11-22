@@ -12,6 +12,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import android.content.ContentValues
+import com.plusorminustwo.postmark.domain.model.MMS_ID_OFFSET
+import com.plusorminustwo.postmark.domain.model.RESTORED_ID_OFFSET
+import com.plusorminustwo.postmark.service.sms.ConversationReadMarker
 import com.plusorminustwo.postmark.data.preferences.GestureHintsRepository
 import com.plusorminustwo.postmark.data.preferences.HomeBackgroundPreferenceRepository
 import com.plusorminustwo.postmark.service.customization.ChatBackgroundImageStore
@@ -309,20 +313,20 @@ class ConversationsViewModel @Inject constructor(
         }
     }
 
-    /** Marks every selected thread read (no-op-safe markAllRead per thread). */
+        /** Marks every selected thread read in both the system provider and Room. */
     fun markSelectedRead() {
         val ids = _selectedThreadIds.value.toList()
         viewModelScope.launch {
-            ids.forEach { messageRepository.markAllRead(it) }
+            ids.forEach { setThreadReadState(it, markRead = true) }
             clearSelection()
         }
     }
 
-    /** Marks every selected thread unread by clearing isRead on its latest message. */
+    /** Marks every selected thread unread in Room and its latest incoming provider row. */
     fun markSelectedUnread() {
         val ids = _selectedThreadIds.value.toList()
         viewModelScope.launch {
-            ids.forEach { messageRepository.markLatestUnread(it) }
+            ids.forEach { setThreadReadState(it, markRead = false) }
             clearSelection()
         }
     }
@@ -441,13 +445,71 @@ class ConversationsViewModel @Inject constructor(
      * .markAllRead] / [MessageRepository.markLatestUnread]) — no parallel implementation.
      * No confirmation needed; this isn't destructive.
      */
-    fun toggleThreadRead(threadId: Long, markRead: Boolean) {
+         /**
+     * Keeps Postmark's read-state actions aligned with Android's SMS/MMS provider.
+     * Provider writes are best-effort because Android only permits them for the default SMS app.
+     */
+    private suspend fun setThreadReadState(threadId: Long, markRead: Boolean) =
+        withContext(Dispatchers.IO) {
+            if (markRead) {
+                val thread = threadRepository.getById(threadId)
+                ConversationReadMarker.buildUpdates(threadId, thread?.address.orEmpty())
+                    .forEach { update ->
+                        try {
+                            val uri = when (update.table) {
+                                ConversationReadMarker.Table.SMS -> Telephony.Sms.CONTENT_URI
+                                ConversationReadMarker.Table.MMS -> Telephony.Mms.CONTENT_URI
+                            }
+                            context.contentResolver.update(
+                                uri,
+                                ContentValues().apply { put(Telephony.Sms.READ, 1) },
+                                update.selection,
+                                update.selectionArgs.toTypedArray()
+                            )
+                        } catch (_: Exception) {
+                            // Keep the Room action working even if the provider rejects the write.
+                        }
+                    }
+                messageRepository.markAllRead(threadId)
+            } else {
+                val latest = messageRepository.getLatestForThread(threadId)
+                messageRepository.markLatestUnread(threadId)
+
+                if (latest != null && !latest.isSent &&
+                    latest.id > 0L && latest.id < RESTORED_ID_OFFSET
+                ) {
+                    val providerId = if (latest.isMms) {
+                        latest.id - MMS_ID_OFFSET
+                    } else {
+                        latest.id
+                    }
+
+                    if (providerId > 0L) {
+                        try {
+                            val uri = ContentUris.withAppendedId(
+                                if (latest.isMms) Telephony.Mms.CONTENT_URI
+                                else Telephony.Sms.CONTENT_URI,
+                                providerId
+                            )
+                            context.contentResolver.update(
+                                uri,
+                                ContentValues().apply { put(Telephony.Sms.READ, 0) },
+                                null,
+                                null
+                            )
+                        } catch (_: Exception) {
+                            // Keep the Room action working even if the provider rejects the write.
+                        }
+                    }
+                }
+            }
+        }
+        fun toggleThreadRead(threadId: Long, markRead: Boolean) {
         viewModelScope.launch {
-            if (markRead) messageRepository.markAllRead(threadId)
-            else messageRepository.markLatestUnread(threadId)
+            setThreadReadState(threadId, markRead)
             _snackbarMessages.tryEmit(if (markRead) "Marked read" else "Marked unread")
         }
-    }
+        }
 
 }
 
