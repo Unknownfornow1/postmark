@@ -77,8 +77,10 @@ class SmsReceiver : BroadcastReceiver() {
                          * content://sms/inbox — the OS will NOT do it for us.
                          * All ContentResolver calls are on Dispatchers.IO to avoid
                          * blocking the main thread (potential ANR). */
-                        if (isDeliver) {
-                            persistToSystemStore(context, rawSender, body, timestampMs)
+                        val providerRowId = if (isDeliver) {
+    persistToSystemStore(context, rawSender, body, timestampMs)
+} else {
+    null
                         }
                         /* SMS_RECEIVED_ACTION: another app is default, it already wrote the row.
                          * Do not insert again — that would create a duplicate. */
@@ -87,9 +89,9 @@ class SmsReceiver : BroadcastReceiver() {
                          * once the row lands, but this explicit call guarantees Room is updated
                          * even if the observer notification is delayed or lost. */
                         if (isDeliver) {
-                        syncHandler.syncSmsNow()
-                        } else {
-                         syncHandler.onSmsContentChanged(Telephony.Sms.CONTENT_URI)
+    syncHandler.syncSmsNow(providerRowId)
+} else {
+    syncHandler.onSmsContentChanged(Telephony.Sms.CONTENT_URI)
                         }
 
                         /* ── Notification (default SMS app only) ────────────────────────
@@ -200,13 +202,12 @@ val senderIsKnownContact = !contactName.isNullOrBlank()
      * contact. PROTOCOL = 0 distinguishes SMS from WAP push (= 1).
      */
     private fun persistToSystemStore(
+        private fun persistToSystemStore(
         context: Context,
         rawSender: String,
         body: String,
         timestampMs: Long
-    ) {
-        /* Resolve or create the canonical thread ID for this address.
-         * Wrapped in try/catch because some OEMs throw on malformed addresses. */
+    ): Long? {
         val threadId: Long = try {
             if (rawSender.isNotEmpty())
                 Telephony.Threads.getOrCreateThreadId(context, rawSender)
@@ -217,27 +218,41 @@ val senderIsKnownContact = !contactName.isNullOrBlank()
         }
 
         val cv = ContentValues().apply {
-            put(Telephony.Sms.Inbox.ADDRESS,   rawSender)
-            put(Telephony.Sms.Inbox.BODY,      body)
-            put(Telephony.Sms.Inbox.DATE,      System.currentTimeMillis())
+            put(Telephony.Sms.Inbox.ADDRESS, rawSender)
+            put(Telephony.Sms.Inbox.BODY, body)
+            put(Telephony.Sms.Inbox.DATE, System.currentTimeMillis())
             put(Telephony.Sms.Inbox.DATE_SENT, timestampMs)
-            put(Telephony.Sms.Inbox.READ,      0)
-            put(Telephony.Sms.Inbox.SEEN,      0)
-            put(Telephony.Sms.PROTOCOL,        0)  // 0 = SMS, 1 = WAP push
+            put(Telephony.Sms.Inbox.READ, 0)
+            put(Telephony.Sms.Inbox.SEEN, 0)
+            put(Telephony.Sms.PROTOCOL, 0)
             if (threadId > 0L) put(Telephony.Sms.THREAD_ID, threadId)
         }
 
-        try {
+        return try {
             val uri = context.contentResolver.insert(Telephony.Sms.Inbox.CONTENT_URI, cv)
             if (uri != null) {
-                syncLogger.log("SmsReceiver", "wrote inbox row: from=${rawSender.redactPhone()} threadId=$threadId uri=$uri")
+                val rowId = uri.lastPathSegment?.toLongOrNull()
+                syncLogger.log(
+                    "SmsReceiver",
+                    "wrote inbox row: from=${rawSender.redactPhone()} threadId=$threadId uri=$uri"
+                )
+                rowId
             } else {
-                syncLogger.logError("SmsReceiver", "Insert returned null for sender=${rawSender.redactPhone()} — message may be lost")
+                syncLogger.logError(
+                    "SmsReceiver",
+                    "Insert returned null for sender=${rawSender.redactPhone()} — message may be lost"
+                )
+                null
             }
         } catch (e: Exception) {
-            syncLogger.logError("SmsReceiver", "Write to content://sms/inbox FAILED for sender=${rawSender.redactPhone()}", e)
+            syncLogger.logError(
+                "SmsReceiver",
+                "Write to content://sms/inbox FAILED for sender=${rawSender.redactPhone()}",
+                e
+            )
+            null
         }
-    }
+        }
 
     companion object {
         private const val TAG = "SmsReceiver"
