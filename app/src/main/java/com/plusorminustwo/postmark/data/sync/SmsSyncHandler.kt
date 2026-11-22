@@ -434,7 +434,8 @@ class SmsSyncHandler @Inject constructor(
             Telephony.Sms.BODY,
             Telephony.Sms.DATE,
             Telephony.Sms.DATE_SENT,
-            Telephony.Sms.TYPE
+            Telephony.Sms.TYPE,
+            Telephony.Sms.STATUS
         )
 
         // Fetch every SMS row we haven't seen yet, oldest-first so thread
@@ -498,7 +499,7 @@ class SmsSyncHandler @Inject constructor(
             val dateIdx     = it.getColumnIndexOrThrow(Telephony.Sms.DATE)
             val dateSentIdx = it.getColumnIndexOrThrow(Telephony.Sms.DATE_SENT)
             val typeIdx     = it.getColumnIndexOrThrow(Telephony.Sms.TYPE)
-
+            val statusIdx   = it.getColumnIndexOrThrow(Telephony.Sms.STATUS)
             while (it.moveToNext()) {
                 val id       = it.getLong(idIdx)
                 if (!seenIds.add(id)) continue
@@ -511,6 +512,7 @@ class SmsSyncHandler @Inject constructor(
                 // DATE_SENT is 0 when the provider never recorded a send time — store NULL, not 0.
                 val dateSent = it.getLong(dateSentIdx).takeIf { v -> v > 0L }
                 val type     = it.getInt(typeIdx)
+                val status   = it.getInt(statusIdx)
                 // Drafts (3), outbox (4), and failed sends (5) are outgoing; only inbox (1) is received.
                 val isSent   = type != Telephony.Sms.MESSAGE_TYPE_INBOX
 
@@ -526,10 +528,17 @@ class SmsSyncHandler @Inject constructor(
                     timestamp = date,
                     isSent = isSent,
                     type = type,
-                    /* Sent messages arriving via incremental sync are waiting for the
-                     * SmsSentDeliveryReceiver callback; start them as PENDING so the UI
-                     * shows the clock icon. Received messages have no delivery tracking. */
-                    deliveryStatus = if (isSent) DELIVERY_STATUS_PENDING else DELIVERY_STATUS_NONE,
+                                        /* Preserve the actual provider send result so sync cannot reset a
+                     * confirmed send back to PENDING. */
+                    deliveryStatus = if (!isSent) {
+                        DELIVERY_STATUS_NONE
+                    } else {
+                        when (status) {
+                            Telephony.Sms.STATUS_COMPLETE -> DELIVERY_STATUS_SENT
+                            Telephony.Sms.STATUS_FAILED -> DELIVERY_STATUS_FAILED
+                            else -> DELIVERY_STATUS_PENDING
+                        }
+                    },
                     // Incoming messages start as unread; sent messages are always read.
                     isRead = isSent,
                     sentAt = dateSent
