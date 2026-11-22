@@ -217,20 +217,8 @@ class IncomingNotifier @Inject constructor(
                 .setKey(address.ifEmpty { notifKey.toString() })
                 .build()
 
-            val style = NotificationCompat.MessagingStyle(person)
-            // Carry the messages already showing under this key forward so successive
-            // messages stack in one conversation with a count (Google Messages' "2") instead
-            // of each replacing the last. Capped so a long-lived thread can't grow unbounded.
-            nm.activeNotifications
-                .firstOrNull { it.id == notifKey }
-                ?.notification
-                ?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
-                ?.messages
-                ?.takeLast(if (isUpdate) MAX_CARRIED_MESSAGES else MAX_CARRIED_MESSAGES - 1)
-                ?.forEach { style.addMessage(it.text, it.timestamp, it.person) }
-            if (!isUpdate) {
-    style.addMessage(displayBody, System.currentTimeMillis(), person)
-            }
+                        val style = NotificationCompat.MessagingStyle(person)
+                .addMessage(displayBody, System.currentTimeMillis(), person)
             if (!allowDirectReply) {
                 style.isGroupConversation = true
                 style.conversationTitle = conversationTitle
@@ -422,8 +410,7 @@ class IncomingNotifier @Inject constructor(
     }
 
     private companion object {
-        /** Ceiling on how many messages one accumulated conversation notification retains. */
-        const val MAX_CARRIED_MESSAGES = 8
+        
 
         /**
          * The separator the callers use to compose a group title as "Sender — Group name"
