@@ -169,6 +169,17 @@ interface MessageDao {
      *  FTS sync trigger) and Room invalidation for every matched row even when the value is
      *  unchanged, so without it re-opening an already-read 10k-message thread rewrote 10k
      *  FTS entries and re-ran every messages observer during the screen-entry animation. */
+        /** Provider-backed unread messages eligible for external read-state reconciliation. */
+    @Query("""
+        SELECT * FROM messages
+        WHERE isRead = 0 AND id > 0 AND id < 20000000000
+    """)
+    suspend fun getUnreadProviderMessages(): List<MessageEntity>
+
+    /** Marks specific provider-backed messages read in Room. */
+    @Query("UPDATE messages SET isRead = 1 WHERE id IN (:ids) AND isRead = 0")
+    suspend fun markMessagesRead(ids: List<Long>)
+    
     @Query("UPDATE messages SET isRead = 1 WHERE threadId = :threadId AND isRead = 0")
     suspend fun markAllRead(threadId: Long)
 
