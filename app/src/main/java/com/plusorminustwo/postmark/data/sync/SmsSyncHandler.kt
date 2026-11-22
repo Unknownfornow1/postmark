@@ -155,7 +155,64 @@ class SmsSyncHandler @Inject constructor(
      * Used by SmsReceiver before building a notification that needs the new
      * message to be present in Room.
      */
-    suspend fun syncSmsNow() = withContext(Dispatchers.IO) {
+    suspend fun syncSmsNow()     /**
+     * Reconciles Room unread flags with the system SMS/MMS provider.
+     * Only checks messages currently marked unread in Room.
+     */
+    private suspend fun reconcileExternalReadStates() {
+        try {
+            val unread = messageRepository.getUnreadProviderMessages()
+            if (unread.isEmpty()) return
+
+            val readRoomIds = mutableListOf<Long>()
+
+            unread.groupBy { it.isMms }.forEach { (isMms, messages) ->
+                val uri = if (isMms) Telephony.Mms.CONTENT_URI
+                          else Telephony.Sms.CONTENT_URI
+
+                messages.chunked(500).forEach { chunk ->
+                    val roomIds = chunk.associate { message ->
+                        val providerId = if (isMms) {
+                            message.id - MMS_ID_OFFSET
+                        } else {
+                            message.id
+                        }
+                        providerId to message.id
+                    }
+
+                    val placeholders = roomIds.keys.joinToString(",") { "?" }
+                    val selection = "read = 1 AND _id IN ($placeholders)"
+
+                    context.contentResolver.query(
+                        uri,
+                        arrayOf(Telephony.Sms._ID),
+                        selection,
+                        roomIds.keys.map { it.toString() }.toTypedArray(),
+                        null
+                    )?.use { cursor ->
+                        val idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
+                        while (cursor.moveToNext()) {
+                            roomIds[cursor.getLong(idIndex)]?.let {
+                                readRoomIds += it
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (readRoomIds.isNotEmpty()) {
+                messageRepository.markMessagesRead(readRoomIds)
+                syncLogger.log(
+                    TAG,
+                    "External read-state reconciliation: marked ${readRoomIds.size} message(s) read"
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            syncLogger.logError(TAG, "External read-state reconciliation failed", e)
+        }
+    }= withContext(Dispatchers.IO) {
         smsMutex.withLock { syncLatestSms() }
     }
 
@@ -178,6 +235,7 @@ class SmsSyncHandler @Inject constructor(
         cleanupNonDisplayableMmsOnce()
         smsMutex.withLock { syncLatestSms() }
         mmsMutex.withLock { syncLatestMms() }
+        reconcileExternalReadStates()
         repairEmptyMmsBodies()
         reprocessReactionsOnce()
         refreshOneToOneDisplayNames()
