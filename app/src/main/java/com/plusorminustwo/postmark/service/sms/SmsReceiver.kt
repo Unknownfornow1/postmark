@@ -16,6 +16,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import com.plusorminustwo.postmark.data.repository.MessageRepository
 import com.plusorminustwo.postmark.service.smartreply.SmartReplyEngine
@@ -85,7 +86,11 @@ class SmsReceiver : BroadcastReceiver() {
                         /* Trigger Room incremental sync. The content observer will also fire
                          * once the row lands, but this explicit call guarantees Room is updated
                          * even if the observer notification is delayed or lost. */
-                        syncHandler.onSmsContentChanged(Telephony.Sms.CONTENT_URI)
+                        if (isDeliver) {
+                        syncHandler.syncSmsNow()
+                        } else {
+                         syncHandler.onSmsContentChanged(Telephony.Sms.CONTENT_URI)
+                        }
 
                         /* ── Notification (default SMS app only) ────────────────────────
                          * SMS_DELIVER fires exclusively for the default SMS app, so gating
@@ -145,7 +150,28 @@ val notifKey = rawSender.hashCode()
 val allowDirectReply = !isGroupThread
 val senderIsKnownContact = !contactName.isNullOrBlank()
 
-// Show the notification immediately, without waiting for Smart Reply.
+val suggestedReplies = if (!privacyMode && !isGroupThread && threadId > 0L) {
+    val conversationMessages = messageRepository.getByThread(threadId)
+    val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
+
+    if (lastMessage?.isSent == false) {
+        val conversation = SmartReplyGenerator.createConversation(conversationMessages)
+
+        if (conversation.isNotEmpty()) {
+            withTimeoutOrNull(4_000L) {
+                smartReplyEngine.suggestRepliesIfAvailable(conversation)
+            }.orEmpty()
+        } else {
+            emptyList()
+        }
+    } else {
+        emptyList()
+    }
+} else {
+    emptyList()
+}
+
+// Post once, with the message and any available Smart Replies together.
 incomingNotifier.notify(
     notifKey = notifKey,
     threadId = threadId,
@@ -154,7 +180,8 @@ incomingNotifier.notify(
     body = body,
     privacyMode = privacyMode,
     allowDirectReply = allowDirectReply,
-    senderIsKnownContact = senderIsKnownContact
+    senderIsKnownContact = senderIsKnownContact,
+    suggestedReplies = suggestedReplies
 )
 
 // Smart Reply is optional: never generate suggestions in privacy mode or group threads.
