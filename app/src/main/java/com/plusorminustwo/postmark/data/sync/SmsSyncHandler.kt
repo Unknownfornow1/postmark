@@ -150,12 +150,16 @@ class SmsSyncHandler @Inject constructor(
     fun onSmsContentChanged(@Suppress("UNUSED_PARAMETER") uri: Uri) {
         smsWorkChannel.trySend(Unit)
     }
-        /**
+            /**
      * Runs the incremental SMS sync immediately and waits for it to finish.
      * Used by SmsReceiver before building a notification that needs the new
      * message to be present in Room.
      */
-    suspend fun syncSmsNow()     /**
+    suspend fun syncSmsNow() = withContext(Dispatchers.IO) {
+        smsMutex.withLock { syncLatestSms() }
+    }
+
+    /**
      * Reconciles Room unread flags with the system SMS/MMS provider.
      * Only checks messages currently marked unread in Room.
      */
@@ -212,8 +216,6 @@ class SmsSyncHandler @Inject constructor(
         } catch (e: Exception) {
             syncLogger.logError(TAG, "External read-state reconciliation failed", e)
         }
-    }= withContext(Dispatchers.IO) {
-        smsMutex.withLock { syncLatestSms() }
     }
 
     /** Signal from MmsReceiver or SmsContentObserver — coalesced into the channel. */
