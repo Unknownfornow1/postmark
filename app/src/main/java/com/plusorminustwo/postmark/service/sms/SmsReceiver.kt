@@ -150,58 +150,39 @@ val notifKey = rawSender.hashCode()
 val allowDirectReply = !isGroupThread
 val senderIsKnownContact = !contactName.isNullOrBlank()
 
-val suggestedReplies = if (!privacyMode && !isGroupThread && threadId > 0L) {
-    val conversationMessages = messageRepository.getByThread(threadId)
-    val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
+                            val suggestedReplies = if (!privacyMode && !isGroupThread && threadId > 0L) {
+                                val conversationMessages = messageRepository.getByThread(threadId)
+                                val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
 
-    if (lastMessage?.isSent == false) {
-        val conversation = SmartReplyGenerator.createConversation(conversationMessages)
+                                if (lastMessage?.isSent == false) {
+                                    val conversation = SmartReplyGenerator.createConversation(conversationMessages)
 
-        if (conversation.isNotEmpty()) {
-            withTimeoutOrNull(4_000L) {
-                smartReplyEngine.suggestRepliesIfAvailable(conversation)
-            }.orEmpty()
-        } else {
-            emptyList()
-        }
-    } else {
-        emptyList()
-    }
-} else {
-    emptyList()
-}
+                                    if (conversation.isNotEmpty()) {
+                                        withTimeoutOrNull(4_000L) {
+                                            smartReplyEngine.suggestRepliesIfAvailable(conversation)
+                                        }.orEmpty()
+                                    } else {
+                                        emptyList()
+                                    }
+                                } else {
+                                    emptyList()
+                                }
+                            } else {
+                                emptyList()
+                            }
 
-// Post once, with the message and any available Smart Replies together.
-incomingNotifier.notify(
-    notifKey = notifKey,
-    threadId = threadId,
-    address = rawSender,
-    title = displayName,
-    body = body,
-    privacyMode = privacyMode,
-    allowDirectReply = allowDirectReply,
-    senderIsKnownContact = senderIsKnownContact,
-    suggestedReplies = suggestedReplies
-)
-
-                        incomingNotifier.notify(
-                            notifKey = notifKey,
-                            threadId = threadId,
-                            address = rawSender,
-                            title = displayName,
-                            body = body,
-                            privacyMode = privacyMode,
-                            allowDirectReply = allowDirectReply,
-                            senderIsKnownContact = senderIsKnownContact,
-                            suggestedReplies = suggestions,
-                            isUpdate = true
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+                            // Post once, with the message and any available Smart Replies together.
+                            incomingNotifier.notify(
+                                notifKey = notifKey,
+                                threadId = threadId,
+                                address = rawSender,
+                                title = displayName,
+                                body = body,
+                                privacyMode = privacyMode,
+                                allowDirectReply = allowDirectReply,
+                                senderIsKnownContact = senderIsKnownContact,
+                                suggestedReplies = suggestedReplies
+                            )
                         }
                     } finally {
                         pendingResult.finish()
