@@ -440,13 +440,22 @@ class SmsSyncHandler @Inject constructor(
 
         // Fetch every SMS row we haven't seen yet, oldest-first so thread
         // metadata (lastMessageAt/Preview) ends up reflecting the true latest.
-                val selection = if (isFirstRoomMessage) {
-            "${Telephony.Sms._ID} = ?"
-        } else {
-            "${Telephony.Sms._ID} > ?"
+                        val selection = when {
+            providerRowId != null && providerRowId > 0L ->
+                "${Telephony.Sms._ID} = ?"
+            isFirstRoomMessage ->
+                "${Telephony.Sms._ID} = ?"
+            else ->
+                "${Telephony.Sms._ID} > ?"
         }
         val selectionArgs = arrayOf(
-            (if (isFirstRoomMessage) requireNotNull(providerRowId) else maxKnownId).toString()
+            (if (providerRowId != null && providerRowId > 0L) {
+                providerRowId
+            } else if (isFirstRoomMessage) {
+                requireNotNull(providerRowId)
+            } else {
+                maxKnownId
+            }).toString()
         )
         val sortOrder = "${Telephony.Sms._ID} ASC"
 
