@@ -73,20 +73,11 @@ class DirectReplyReceiver : BroadcastReceiver() {
                 if (threadId > 0L) {
                     messageRepository.markAllRead(threadId)
                 }
-            } finally {
-                val nm = context.getSystemService(NotificationManager::class.java)
-
-                // ── Dismiss the individual thread notification ────────────────────
-                nm.cancel(notifId)
-
-                // ── Dismiss the group summary if no members remain ────────────────
-                // After cancelling the individual notification, check whether any
-                // other SMS notifications are still active. If none are, cancel the
-                // summary row too.
-                val remaining = nm.activeNotifications.filter { sbn ->
-                    sbn.notification.group == PostmarkApplication.GROUP_KEY_SMS &&
-                        sbn.id != PostmarkApplication.NOTIF_ID_SMS_SUMMARY
-                }
+                        } finally {
+                // Keep the conversation notification active so its bubble
+                // remains available after a notification reply.
+                pendingResult.finish()
+            }
                 if (remaining.isEmpty()) {
                     nm.cancel(PostmarkApplication.NOTIF_ID_SMS_SUMMARY)
                 }
