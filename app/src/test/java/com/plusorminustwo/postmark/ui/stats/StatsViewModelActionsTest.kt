@@ -481,6 +481,8 @@ class StatsViewModelHeatmapDowTest {
  */
 private class ActionsRangeFakeMessageDao(
     private val allMessages: List<MessageEntity> = emptyList()
+    override suspend fun getUnreadProviderMessages(): List<MessageEntity> = emptyList()
+    override suspend fun markMessagesRead(ids: List<Long>) = Unit
 ) : MessageDao {
     override fun observeByThread(threadId: Long): Flow<List<MessageEntity>> =
         flowOf(allMessages.filter { it.threadId == threadId })
