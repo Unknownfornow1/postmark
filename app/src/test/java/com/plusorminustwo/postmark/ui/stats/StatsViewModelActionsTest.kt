@@ -480,9 +480,7 @@ class StatsViewModelHeatmapDowTest {
  * Used for DOW tests that need real message data in [heatmapMessages].
  */
 private class ActionsRangeFakeMessageDao(
-    private val allMessages: List<MessageEntity> = emptyList()
-    override suspend fun getUnreadProviderMessages(): List<MessageEntity> = emptyList()
-    override suspend fun markMessagesRead(ids: List<Long>) = Unit
+        private val allMessages: List<MessageEntity> = emptyList()
 ) : MessageDao {
     override fun observeByThread(threadId: Long): Flow<List<MessageEntity>> =
         flowOf(allMessages.filter { it.threadId == threadId })
@@ -506,6 +504,8 @@ private class ActionsRangeFakeMessageDao(
         allMessages.firstOrNull { it.id == messageId }
 
     override suspend fun getAll(): List<MessageEntity> = allMessages
+    override suspend fun getUnreadProviderMessages(): List<MessageEntity> = emptyList()
+    override suspend fun markMessagesRead(ids: List<Long>) = Unit
     override suspend fun getQueuedMessages(): List<MessageEntity> = emptyList()
     override suspend fun hasQueuedInThread(threadId: Long): Boolean = false
     override suspend fun getAllThreadIds(): List<Long> = allMessages.map { it.threadId }.distinct()
