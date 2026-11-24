@@ -3504,6 +3504,8 @@ private fun ReplyBar(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val currentText by rememberUpdatedState(text)
+    val currentOnTextChange by rememberUpdatedState(onTextChange)
     var showAttachMenu by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -4051,7 +4053,7 @@ if (smartReplies.isNotEmpty() &&
                             EmojiPickerView(viewContext).apply {
                                 emojiGridColumns = 8
                                 setOnEmojiPickedListener { item ->
-                                    onTextChange(text + item.emoji)
+                                    currentOnTextChange(currentText + item.emoji)
                                 }
                             }
                         },
