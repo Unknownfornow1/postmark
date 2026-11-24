@@ -73,16 +73,8 @@ class MarkAsReadReceiver : BroadcastReceiver() {
                                 if (threadId > 0L) {
                     messageRepository.markAllRead(threadId)
                                 }
-                        } finally {
-                // Keep the conversation notification active so its bubble
-                // remains available after the conversation is marked read.
-                pendingResult.finish()
-            }
-                if (remaining.isEmpty()) {
-                    nm.cancel(PostmarkApplication.NOTIF_ID_SMS_SUMMARY)
-                }
-
-                pendingResult.finish()
+                                                } finally {
+                            pendingResult.finish()
             }
         }
     }
