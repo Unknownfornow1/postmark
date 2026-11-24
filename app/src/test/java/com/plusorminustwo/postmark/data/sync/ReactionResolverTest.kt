@@ -337,6 +337,16 @@ private class InMemoryMessageDao : MessageDao {
     override suspend fun updateDeliveryStatusWithTimestamp(messageId: Long, status: Int, deliveredAt: Long) = Unit
     override suspend fun updateThreadId(messageId: Long, threadId: Long) = Unit
     override suspend fun updateAttachments(messageId: Long, attachmentsJson: String?, firstUri: String?, firstMime: String?) = Unit
+    override suspend fun getUnreadProviderMessages(): List<MessageEntity> =
+        rows.values.filter {
+            !it.isRead && !it.isSent && it.id > 0 && it.id < 20_000_000_000L
+        }
+
+    override suspend fun markMessagesRead(ids: List<Long>) {
+        ids.forEach { id ->
+            rows[id]?.let { rows[id] = it.copy(isRead = true) }
+        }
+    }
     override suspend fun getEmptyMmsRows(limit: Int): List<MessageEntity> = emptyList()
     override suspend fun updateBody(messageId: Long, body: String) = Unit
     override suspend fun deleteOptimisticMessages(threadId: Long, isMms: Boolean) = Unit
