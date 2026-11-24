@@ -42,6 +42,27 @@ import javax.inject.Singleton
 class IncomingNotifier @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+        /**
+     * Refreshes an existing conversation notification after its messages are read.
+     * Recovering the original builder preserves its actions, conversation shortcut,
+     * and bubble metadata instead of cancelling the notification.
+     */
+    fun markConversationRead(notifKey: Int) {
+        val nm = context.getSystemService(NotificationManager::class.java)
+        val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
+            ?: return
+
+        val builder = NotificationCompat.Builder.recoverBuilder(
+            context,
+            active.notification
+        )
+            .setSubText("Read")
+            .setAutoCancel(false)
+            .setOnlyAlertOnce(true)
+
+        nm.notify(notifKey, builder.build())
+        updateSummaryNotification(nm)
+    }
     /**
      * @param notifKey    stable per-conversation key. Callers use `address.hashCode()` for
      *                    1:1 conversations (so an SMS and a 1:1 MMS from the same contact
