@@ -34,8 +34,11 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MarkAsReadReceiver : BroadcastReceiver() {
 
-    @Inject
+        @Inject
     lateinit var messageRepository: MessageRepository
+
+    @Inject
+    lateinit var incomingNotifier: IncomingNotifier
 
     override fun onReceive(context: Context, intent: Intent) {
         val address  = intent.getStringExtra(EXTRA_ADDRESS) ?: return
@@ -70,9 +73,11 @@ class MarkAsReadReceiver : BroadcastReceiver() {
                         // update or the notification dismissal in `finally` below.
                     }
                 }
-                                if (threadId > 0L) {
+                                                if (threadId > 0L) {
                     messageRepository.markAllRead(threadId)
-                                }
+                }
+
+                incomingNotifier.markConversationRead(notifId)
                                                 } finally {
                             pendingResult.finish()
             }
