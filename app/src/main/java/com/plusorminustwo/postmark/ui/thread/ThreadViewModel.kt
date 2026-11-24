@@ -210,7 +210,6 @@ private var smartReplyRequestId = 0
     private fun sendRecipientsFor(thread: Thread): List<String> =
         if (groupSendSupported) recipientsFor(thread) else listOf(thread.address)
 
-        init {
             init {
         // Mark this conversation as read in both Room and the system SMS/MMS provider.
         viewModelScope.launch {
