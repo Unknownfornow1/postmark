@@ -34,9 +34,11 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class DirectReplyReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var smsManagerWrapper: SmsManagerWrapper
-        @Inject lateinit var messageRepository: MessageRepository
+        @Inject lateinit var smsManagerWrapper: SmsManagerWrapper
 
+    @Inject lateinit var messageRepository: MessageRepository
+
+    @Inject lateinit var incomingNotifier: IncomingNotifier
     override fun onReceive(context: Context, intent: Intent) {
         val address = intent.getStringExtra(EXTRA_ADDRESS) ?: return
         val notifId = intent.getIntExtra(EXTRA_NOTIF_ID, 0)
@@ -70,9 +72,11 @@ class DirectReplyReceiver : BroadcastReceiver() {
                     }
                 }
 
-                if (threadId > 0L) {
+                                if (threadId > 0L) {
                     messageRepository.markAllRead(threadId)
                 }
+
+                incomingNotifier.markConversationRead(notifId)
                                     } finally {
                 pendingResult.finish()
             }
