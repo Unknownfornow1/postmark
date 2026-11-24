@@ -65,6 +65,7 @@ import com.plusorminustwo.postmark.domain.customization.TimestampPreference
 import com.plusorminustwo.postmark.service.audio.VoiceMemoRecorder
 import com.plusorminustwo.postmark.service.customization.ChatBackgroundImageStore
 import com.plusorminustwo.postmark.service.sms.ActiveThreadTracker
+import com.plusorminustwo.postmark.service.sms.IncomingNotifier
 import com.plusorminustwo.postmark.service.sms.ConversationReadMarker
 import com.plusorminustwo.postmark.service.sms.MmsManagerWrapper
 import com.plusorminustwo.postmark.service.reminder.MessageReminderWorker
@@ -169,8 +170,9 @@ class ThreadViewModel @Inject constructor(
     private val saveNumberPromptRepository: SaveNumberPromptRepository,
     private val gestureHintsRepo: GestureHintsRepository,
     private val voiceMemoRecorder: VoiceMemoRecorder,
-    private val activeThreadTracker: ActiveThreadTracker,
-    private val smartReplyEngine: SmartReplyEngine
+        private val activeThreadTracker: ActiveThreadTracker,
+    private val smartReplyEngine: SmartReplyEngine,
+    private val incomingNotifier: IncomingNotifier
 ) : ViewModel() {
 
     private val threadId: Long = checkNotNull(savedStateHandle["threadId"])
@@ -213,7 +215,8 @@ private var smartReplyRequestId = 0
         viewModelScope.launch {
             messageRepository.markAllRead(threadId)
 
-            val address = threadRepository.getById(threadId)?.address.orEmpty()
+                        val thread = threadRepository.getById(threadId)
+            val address = thread?.address.orEmpty()
 
             withContext(Dispatchers.IO) {
                 ConversationReadMarker.buildUpdates(threadId, address).forEach { update ->
@@ -234,9 +237,18 @@ private var smartReplyRequestId = 0
                     } catch (_: Exception) {
                     }
                 }
+            }            }
+
+            if (thread != null) {
+                val notifKey = if (thread.participants.size > 1) {
+                    threadId.hashCode()
+                } else {
+                    address.hashCode()
+                }
+                incomingNotifier.markConversationRead(notifKey)
             }
         }
-        }
+}
 
     private val _selectionState  = MutableStateFlow(emptySet<Long>())
     private val _isSelectionMode = MutableStateFlow(false)
