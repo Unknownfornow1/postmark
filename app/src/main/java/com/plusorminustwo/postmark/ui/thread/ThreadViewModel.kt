@@ -211,11 +211,12 @@ private var smartReplyRequestId = 0
         if (groupSendSupported) recipientsFor(thread) else listOf(thread.address)
 
         init {
+            init {
         // Mark this conversation as read in both Room and the system SMS/MMS provider.
         viewModelScope.launch {
             messageRepository.markAllRead(threadId)
 
-                        val thread = threadRepository.getById(threadId)
+            val thread = threadRepository.getById(threadId)
             val address = thread?.address.orEmpty()
 
             withContext(Dispatchers.IO) {
@@ -237,7 +238,7 @@ private var smartReplyRequestId = 0
                     } catch (_: Exception) {
                     }
                 }
-            }            }
+            }
 
             if (thread != null) {
                 val notifKey = if (thread.participants.size > 1) {
@@ -248,7 +249,7 @@ private var smartReplyRequestId = 0
                 incomingNotifier.markConversationRead(notifKey)
             }
         }
-}
+            }
 
     private val _selectionState  = MutableStateFlow(emptySet<Long>())
     private val _isSelectionMode = MutableStateFlow(false)
