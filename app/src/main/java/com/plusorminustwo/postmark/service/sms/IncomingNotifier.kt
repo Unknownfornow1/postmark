@@ -367,10 +367,12 @@ class IncomingNotifier @Inject constructor(
      * If no group members remain (e.g. all were dismissed), the summary is cancelled.
      */
     private fun updateSummaryNotification(nm: NotificationManager) {
-        val groupNotifs = nm.activeNotifications.filter { sbn ->
+                val groupNotifs = nm.activeNotifications.filter { sbn ->
             sbn.notification.group == PostmarkApplication.GROUP_KEY_SMS &&
-                sbn.id != PostmarkApplication.NOTIF_ID_SMS_SUMMARY
-        }
+                sbn.id != PostmarkApplication.NOTIF_ID_SMS_SUMMARY &&
+                sbn.notification.extras
+                    .getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() != "Read"
+                }
 
         if (groupNotifs.isEmpty()) {
             nm.cancel(PostmarkApplication.NOTIF_ID_SMS_SUMMARY)
