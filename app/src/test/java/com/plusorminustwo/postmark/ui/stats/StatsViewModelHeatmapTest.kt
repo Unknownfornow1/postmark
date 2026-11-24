@@ -245,6 +245,8 @@ class StatsViewModelHeatmapTest {
 // ── Fake DAO implementations ──────────────────────────────────────────────────
 
 private class FakeMessageDao : MessageDao {
+    override suspend fun getUnreadProviderMessages(): List<MessageEntity> = emptyList()
+    override suspend fun markMessagesRead(ids: List<Long>) = Unit
     override fun observeByThread(threadId: Long): Flow<List<MessageEntity>> = flowOf(emptyList())
     override fun observeMessagesFrom(startMs: Long): Flow<List<MessageEntity>> = flowOf(emptyList())
     override fun observeMessagesFromForThread(threadId: Long, startMs: Long): Flow<List<MessageEntity>> = flowOf(emptyList())
