@@ -52,7 +52,7 @@ class IncomingNotifier @Inject constructor(
         val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
             ?: return
 
-        val builder = NotificationCompat.Builder.recoverBuilder(
+            val builder = Notification.Builder.recoverBuilder(
             context,
             active.notification
         )
