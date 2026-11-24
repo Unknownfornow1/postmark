@@ -188,6 +188,8 @@ private class StubMessageDao : MessageDao {
     override suspend fun deleteAll() = Unit
     override suspend fun getAllThreadIds(): List<Long> = emptyList()
     override suspend fun getAll(): List<MessageEntity> = emptyList()
+    override suspend fun getUnreadProviderMessages(): List<MessageEntity> = emptyList()
+    override suspend fun markMessagesRead(ids: List<Long>) = Unit
     override suspend fun getQueuedMessages(): List<MessageEntity> = emptyList()
     override suspend fun hasQueuedInThread(threadId: Long): Boolean = false
     override suspend fun getMaxId(): Long? = null
