@@ -220,6 +220,16 @@ private class RepairInMemoryMessageDao : MessageDao {
     override suspend fun deleteOptimisticMessages(threadId: Long, isMms: Boolean) = Unit
     override suspend fun getOptimisticSentDeliveryStatus(threadId: Long, isMms: Boolean): Int? = null
     override suspend fun getOptimisticSentId(threadId: Long, isMms: Boolean): Long? = null
+    override suspend fun getUnreadProviderMessages(): List<MessageEntity> =
+        rows.values.filter {
+            !it.isRead && !it.isSent && it.id > 0 && it.id < RESTORED_ID_OFFSET
+        }
+
+    override suspend fun markMessagesRead(ids: List<Long>) {
+        ids.forEach { id ->
+            rows[id]?.let { rows[id] = it.copy(isRead = true) }
+        }
+    }
     override suspend fun getOptimisticSentMms(threadId: Long): List<MessageEntity> = emptyList()
     override suspend fun deleteAll() = Unit
     override suspend fun getAll(): List<MessageEntity> = rows.values.toList()
