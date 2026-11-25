@@ -59,6 +59,7 @@ class IncomingNotifier @Inject constructor(
             .setSubText("Read")
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
+                    builder.setGroup(null)
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             active.notification.shortcutId?.let { shortcutId ->
