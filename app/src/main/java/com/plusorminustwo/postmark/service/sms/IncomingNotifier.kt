@@ -42,57 +42,58 @@ import javax.inject.Singleton
 class IncomingNotifier @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-        /**
+            /**
      * Refreshes an existing conversation notification after its messages are read.
      * Recovering the original builder preserves its actions, conversation shortcut,
      * and bubble metadata instead of cancelling the notification.
      */
     fun markConversationRead(notifKey: Int) {
-    fun markConversationRead(notifKey: Int) {
-    val nm = context.getSystemService(NotificationManager::class.java)
-    val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
-        ?: return
+        val nm = context.getSystemService(NotificationManager::class.java)
+        val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
+            ?: return
 
-    val builder = Notification.Builder.recoverBuilder(
-        context,
-        active.notification
-    )
-        .setSubText("Read")
-        .setAutoCancel(false)
-        .setOnlyAlertOnce(true)
+        val builder = Notification.Builder.recoverBuilder(
+            context,
+            active.notification
+        )
+            .setSubText("Read")
+            .setAutoCancel(false)
+            .setOnlyAlertOnce(true)
 
-    // Keep the individual notification separate from the summary.
-    // This prevents refreshing the summary from removing the bubble.
-    builder.setGroup(null)
+        builder.setGroup(null)
 
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-        active.notification.shortcutId?.let { shortcutId ->
-            builder.setShortcutId(shortcutId)
-        }
-    }
-
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-        active.notification.bubbleMetadata?.let { bubbleMetadata ->
-            val updatedBubble = Notification.BubbleMetadata.Builder(
-                bubbleMetadata.intent,
-                bubbleMetadata.icon
-            )
-                .setDesiredHeight(bubbleMetadata.desiredHeight)
-                .setAutoExpandBubble(bubbleMetadata.autoExpandBubble)
-                .setSuppressNotification(true)
-
-            bubbleMetadata.deleteIntent?.let {
-                updatedBubble.setDeleteIntent(it)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            active.notification.shortcutId?.let { shortcutId ->
+                builder.setShortcutId(shortcutId)
             }
-
-            builder.setBubbleMetadata(updatedBubble.build())
         }
-    }
 
-    nm.notify(notifKey, builder.build())
-    updateSummaryNotification(nm)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            active.notification.bubbleMetadata?.let { bubbleMetadata ->
+                val bubbleIntent = bubbleMetadata.intent
+                val bubbleIcon = bubbleMetadata.icon
+
+                if (bubbleIntent != null && bubbleIcon != null) {
+                    val updatedBubble = Notification.BubbleMetadata.Builder(
+                        bubbleIntent,
+                        bubbleIcon
+                    )
+                        .setDesiredHeight(bubbleMetadata.desiredHeight)
+                        .setAutoExpandBubble(bubbleMetadata.autoExpandBubble)
+                        .setSuppressNotification(true)
+
+                    bubbleMetadata.deleteIntent?.let {
+                        updatedBubble.setDeleteIntent(it)
+                    }
+
+                    builder.setBubbleMetadata(updatedBubble.build())
+                }
+            }
+        }
+
+        nm.notify(notifKey, builder.build())
+        updateSummaryNotification(nm)
     }
-    /**
      * @param notifKey    stable per-conversation key. Callers use `address.hashCode()` for
      *                    1:1 conversations (so an SMS and a 1:1 MMS from the same contact
      *                    collapse into the same notification) and `threadId.hashCode()` for
