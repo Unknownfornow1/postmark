@@ -60,9 +60,7 @@ class IncomingNotifier @Inject constructor(
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            builder.setBubbleMetadata(active.notification.bubbleMetadata)
-        }
+       
 
         nm.notify(notifKey, builder.build())
         updateSummaryNotification(nm)
