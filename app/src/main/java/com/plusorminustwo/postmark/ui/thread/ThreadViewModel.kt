@@ -239,14 +239,10 @@ private var smartReplyRequestId = 0
                 }
             }
 
-            if (thread != null) {
-                val notifKey = if (thread.participants.size > 1) {
-                    threadId.hashCode()
-                } else {
-                    address.hashCode()
-                }
-                incomingNotifier.markConversationRead(notifKey)
-            }
+            // The conversation is already marked as read in Room and
+            // the system SMS/MMS provider above. Do not repost its
+            // notification while a bubble is opening, as that can
+            // interfere with Android's bubble lifecycle.
         }
             }
 
