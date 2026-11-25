@@ -52,7 +52,7 @@ class IncomingNotifier @Inject constructor(
         val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
             ?: return
 
-                    val builder = Notification.Builder.recoverBuilder(
+                            val builder = Notification.Builder.recoverBuilder(
             context,
             active.notification
         )
@@ -60,7 +60,17 @@ class IncomingNotifier @Inject constructor(
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
 
-       
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            active.notification.shortcutId?.let { shortcutId ->
+                builder.setShortcutId(shortcutId)
+            }
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            active.notification.bubbleMetadata?.let { bubbleMetadata ->
+                builder.setBubbleMetadata(bubbleMetadata)
+            }
+        }
 
         nm.notify(notifKey, builder.build())
         updateSummaryNotification(nm)
