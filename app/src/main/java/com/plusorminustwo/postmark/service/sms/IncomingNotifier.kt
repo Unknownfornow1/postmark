@@ -48,33 +48,49 @@ class IncomingNotifier @Inject constructor(
      * and bubble metadata instead of cancelling the notification.
      */
     fun markConversationRead(notifKey: Int) {
-        val nm = context.getSystemService(NotificationManager::class.java)
-        val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
-            ?: return
+    fun markConversationRead(notifKey: Int) {
+    val nm = context.getSystemService(NotificationManager::class.java)
+    val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
+        ?: return
 
-                            val builder = Notification.Builder.recoverBuilder(
-            context,
-            active.notification
-        )
-            .setSubText("Read")
-            .setAutoCancel(false)
-            .setOnlyAlertOnce(true)
-                    builder.setGroup(null)
+    val builder = Notification.Builder.recoverBuilder(
+        context,
+        active.notification
+    )
+        .setSubText("Read")
+        .setAutoCancel(false)
+        .setOnlyAlertOnce(true)
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            active.notification.shortcutId?.let { shortcutId ->
-                builder.setShortcutId(shortcutId)
-            }
+    // Keep the individual notification separate from the summary.
+    // This prevents refreshing the summary from removing the bubble.
+    builder.setGroup(null)
+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        active.notification.shortcutId?.let { shortcutId ->
+            builder.setShortcutId(shortcutId)
         }
+    }
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            active.notification.bubbleMetadata?.let { bubbleMetadata ->
-                builder.setBubbleMetadata(bubbleMetadata)
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        active.notification.bubbleMetadata?.let { bubbleMetadata ->
+            val updatedBubble = Notification.BubbleMetadata.Builder(
+                bubbleMetadata.intent,
+                bubbleMetadata.icon
+            )
+                .setDesiredHeight(bubbleMetadata.desiredHeight)
+                .setAutoExpandBubble(bubbleMetadata.autoExpandBubble)
+                .setSuppressNotification(true)
+
+            bubbleMetadata.deleteIntent?.let {
+                updatedBubble.setDeleteIntent(it)
             }
-        }
 
-        nm.notify(notifKey, builder.build())
-        updateSummaryNotification(nm)
+            builder.setBubbleMetadata(updatedBubble.build())
+        }
+    }
+
+    nm.notify(notifKey, builder.build())
+    updateSummaryNotification(nm)
     }
     /**
      * @param notifKey    stable per-conversation key. Callers use `address.hashCode()` for
