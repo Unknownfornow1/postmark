@@ -184,7 +184,19 @@ private var smartReplyRequestId = 0
      * the notification banner. Driven by ThreadScreen's ON_RESUME/ON_PAUSE so the tracker
      * follows what the user is actually looking at, not merely which ViewModel exists.
      */
-    fun onScreenResumed() = activeThreadTracker.setActive(threadId)
+    fun onScreenResumed() {
+    activeThreadTracker.setActive(threadId)
+
+    viewModelScope.launch {
+        val thread = threadRepository.getById(threadId) ?: return@launch
+        val notifKey = if (thread.participants.size > 1) {
+            threadId.hashCode()
+        } else {
+            thread.address.hashCode()
+        }
+        incomingNotifier.markConversationRead(notifKey)
+    }
+    }
 
     /** Clears this thread's active-registration on ON_PAUSE (no-op if a newer screen already
      *  took over — [ActiveThreadTracker.clearActive] only clears on a matching id). */
