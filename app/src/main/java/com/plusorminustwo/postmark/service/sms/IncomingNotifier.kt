@@ -52,13 +52,17 @@ class IncomingNotifier @Inject constructor(
         val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
             ?: return
 
-            val builder = Notification.Builder.recoverBuilder(
+                    val builder = Notification.Builder.recoverBuilder(
             context,
             active.notification
         )
             .setSubText("Read")
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            builder.setBubbleMetadata(active.notification.bubbleMetadata)
+        }
 
         nm.notify(notifKey, builder.build())
         updateSummaryNotification(nm)
