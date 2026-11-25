@@ -165,14 +165,19 @@ class IncomingNotifier @Inject constructor(
             markReadPendingIntent
         ).build()
 
-        // ── Individual per-thread notification ────────────────────────────────────
+                // ── Individual per-thread notification ────────────────────────────────────
+        val hasBubble = !privacyMode &&
+            threadId > 0L &&
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+
         val builder = NotificationCompat.Builder(context, PostmarkApplication.CHANNEL_INCOMING_SMS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(displayTitle)
             .setContentText(displayBody)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(openIntent)
-            .setAutoCancel(true)
+            .setAutoCancel(!hasBubble)
+            .setGroup(PostmarkApplication.GROUP_KEY_SMS)
             .setGroup(PostmarkApplication.GROUP_KEY_SMS)
 
         if (privacyMode) {
