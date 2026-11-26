@@ -124,14 +124,34 @@ class IncomingNotifier @Inject constructor(
                 suggestedReplies: List<String> = emptyList(),
         isUpdate: Boolean = false
                 ) {
-        val nm = context.getSystemService(NotificationManager::class.java)
-        if (isUpdate && nm.activeNotifications.none { it.id == notifKey }) {
-    return
+                val nm = context.getSystemService(NotificationManager::class.java)
+        val activeNotification = if (isUpdate) {
+            nm.activeNotifications
+                .firstOrNull { it.id == notifKey }
+                ?.notification
+                ?: return
+        } else {
+            null
+        }
+
+        if (isUpdate &&
+            activeNotification?.extras
+                ?.getCharSequence(Notification.EXTRA_SUB_TEXT)
+                ?.toString() == "Read"
+        ) {
+            return
         }
 
         // ── Privacy mode: redact sender and body so bystanders can't read the screen ──
         val displayTitle = if (privacyMode) context.getString(R.string.privacy_mode_notification_title) else title
         val displayBody  = if (privacyMode) "" else body
+                    if (isUpdate &&
+            activeNotification?.extras
+                ?.getCharSequence(Notification.EXTRA_TEXT)
+                ?.toString() != displayBody
+        ) {
+            return
+                    }
 
         // ── Content intent — deep-links straight to this conversation ─────────────
         val openIntent = PendingIntent.getActivity(
@@ -202,6 +222,7 @@ class IncomingNotifier @Inject constructor(
             .setContentTitle(displayTitle)
             .setContentText(displayBody)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setOnlyAlertOnce(isUpdate)
             .setContentIntent(openIntent)
             .setAutoCancel(!hasBubble)
             .setGroup(PostmarkApplication.GROUP_KEY_SMS)
