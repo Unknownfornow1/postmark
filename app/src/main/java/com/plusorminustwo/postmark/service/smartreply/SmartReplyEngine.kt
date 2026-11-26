@@ -56,24 +56,16 @@ class SmartReplyEngine @Inject constructor(
             }
         }
     }
-        /**
-     * Generates suggestions only when the model is already available.
-     * Unlike suggestReplies(), this never starts a model installation.
+            /**
+     * Generates suggestions using the shared model-readiness
+     * and installation queue, just like conversation suggestions.
      */
     suspend fun suggestRepliesIfAvailable(
         conversation: List<TextMessage>
     ): List<String> = suspendCancellableCoroutine { continuation ->
-        isModelAvailable { isAvailable ->
-            if (!continuation.isActive) return@isModelAvailable
-
-            if (isAvailable) {
-                requestSuggestions(conversation) { suggestions ->
-                    if (continuation.isActive) {
-                        continuation.resume(suggestions)
-                    }
-                }
-            } else {
-                continuation.resume(emptyList())
+        suggestReplies(conversation) { suggestions ->
+            if (continuation.isActive) {
+                continuation.resume(suggestions)
             }
         }
     }
