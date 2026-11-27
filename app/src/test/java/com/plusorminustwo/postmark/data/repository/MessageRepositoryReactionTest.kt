@@ -176,6 +176,8 @@ private class StubMessageDao : MessageDao {
     override suspend fun countByThread(threadId: Long): Int = 0
     override suspend fun getByThreadAndDateRange(threadId: Long, startMs: Long, endMs: Long): List<MessageEntity> = emptyList()
     override suspend fun updateDeliveryStatus(messageId: Long, status: Int) = Unit
+    override suspend fun getPendingProviderSmsIds(): List<Long> = emptyList()
+    override suspend fun updatePendingDeliveryStatus(messageId: Long, status: Int) = Unit
     override suspend fun updateDeliveryStatusWithTimestamp(messageId: Long, status: Int, deliveredAt: Long) = Unit
     override suspend fun updateThreadId(messageId: Long, threadId: Long) = Unit
     override suspend fun deleteOptimisticMessages(threadId: Long, isMms: Boolean) = Unit
