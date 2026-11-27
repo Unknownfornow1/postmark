@@ -235,12 +235,88 @@ class SmsSyncHandler @Inject constructor(
     suspend fun triggerCatchUp() = withContext(Dispatchers.IO) {
         repairRostersOnce()
         cleanupNonDisplayableMmsOnce()
-        smsMutex.withLock { syncLatestSms() }
+                smsMutex.withLock {
+            syncLatestSms()
+            reconcilePendingSmsStatuses()
+                }
         mmsMutex.withLock { syncLatestMms() }
         reconcileExternalReadStates()
         repairEmptyMmsBodies()
         reprocessReactionsOnce()
         refreshOneToOneDisplayNames()
+    }
+        /**
+     * Re-checks provider-backed outgoing SMS rows that Room still considers pending.
+     * Incremental sync cannot see these rows again because their IDs are already
+     * below the SMS watermark, so this targeted pass reconciles their actual status.
+     *
+     * Only explicit provider results are applied. Unknown or pending provider states
+     * are left untouched rather than guessing that a message was sent.
+     */
+    private suspend fun reconcilePendingSmsStatuses() {
+        try {
+            val pendingIds = messageRepository.getPendingProviderSmsIds()
+            if (pendingIds.isEmpty()) return
+
+            val projection = arrayOf(
+                Telephony.Sms._ID,
+                Telephony.Sms.STATUS
+            )
+
+            var reconciled = 0
+
+            pendingIds.chunked(400).forEach { batch ->
+                val placeholders = batch.joinToString(",") { "?" }
+                val selection = "${Telephony.Sms._ID} IN ($placeholders)"
+                val selectionArgs = batch.map { it.toString() }.toTypedArray()
+
+                val cursor = context.contentResolver.query(
+                    Uri.parse("content://sms/sent"),
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null
+                ) ?: return@forEach
+
+                cursor.use {
+                    val idIndex = it.getColumnIndexOrThrow(Telephony.Sms._ID)
+                    val statusIndex = it.getColumnIndexOrThrow(Telephony.Sms.STATUS)
+
+                    while (it.moveToNext()) {
+                        val messageId = it.getLong(idIndex)
+                        val providerStatus = it.getInt(statusIndex)
+
+                        val deliveryStatus = when (providerStatus) {
+                            Telephony.Sms.STATUS_COMPLETE -> DELIVERY_STATUS_SENT
+                            Telephony.Sms.STATUS_FAILED -> DELIVERY_STATUS_FAILED
+                            else -> null
+                        } ?: continue
+
+                        messageRepository.updatePendingDeliveryStatus(
+                            messageId,
+                            deliveryStatus
+                        )
+                        reconciled++
+                    }
+                }
+            }
+
+            if (reconciled > 0) {
+                debugLog("reconcilePendingSmsStatuses: reconciled $reconciled message(s)")
+                syncLogger.log(
+                    "SmsStatusRecovery",
+                    "Reconciled $reconciled pending message(s) from provider"
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            syncLogger.logError(
+                "SmsStatusRecovery",
+                "Pending SMS status reconciliation failed — will retry on next catch-up",
+                e
+            )
+        }
     }
 
     /*
