@@ -111,7 +111,6 @@ class IncomingNotifier @Inject constructor(
         updateSummaryNotification(nm)
     }
 
-    }
         /**
      * @param notifKey    stable per-conversation key. Callers use `address.hashCode()` for
      *                    1:1 conversations (so an SMS and a 1:1 MMS from the same contact
