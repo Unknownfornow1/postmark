@@ -57,6 +57,20 @@ interface MessageDao {
 
     @Query("UPDATE messages SET deliveryStatus = :status WHERE id = :messageId")
     suspend fun updateDeliveryStatus(messageId: Long, status: Int)
+    /** Provider-backed outgoing SMS rows still awaiting a confirmed send result. */
+@Query("""
+    SELECT id FROM messages
+    WHERE id > 0 AND id < 10000000000
+      AND isMms = 0 AND isSent = 1 AND deliveryStatus = 1
+""")
+suspend fun getPendingProviderSmsIds(): List<Long>
+
+/** Reconciles a pending SMS only; never overwrites a newer delivery state. */
+@Query("""
+    UPDATE messages SET deliveryStatus = :status
+    WHERE id = :messageId AND deliveryStatus = 1
+""")
+suspend fun updatePendingDeliveryStatus(messageId: Long, status: Int)
 
     /** Sets delivery status AND the delivery timestamp in one atomic update. Used by
      *  SmsSentDeliveryReceiver when a carrier delivery report confirms handset receipt, so the
