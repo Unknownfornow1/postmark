@@ -47,11 +47,32 @@ class IncomingNotifier @Inject constructor(
      * Recovering the original builder preserves its actions, conversation shortcut,
      * and bubble metadata instead of cancelling the notification.
      */
+    
+    /**
+     * Marks a conversation notification as read.
+     * Non-bubble notifications are dismissed completely.
+     * Bubble notifications are retained but suppressed from the notification shade.
+     */
     fun markConversationRead(notifKey: Int) {
         val nm = context.getSystemService(NotificationManager::class.java)
         val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
             ?: return
 
+        val bubbleMetadata =
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                active.notification.bubbleMetadata
+            } else {
+                null
+            }
+
+        // Without a bubble, dismiss the notification completely.
+        if (bubbleMetadata == null) {
+            nm.cancel(notifKey)
+            updateSummaryNotification(nm)
+            return
+        }
+
+        // Keep the bubble notification alive, but hide it from the shade.
         val builder = Notification.Builder.recoverBuilder(
             context,
             active.notification
@@ -59,8 +80,7 @@ class IncomingNotifier @Inject constructor(
             .setSubText("Read")
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
-
-        builder.setGroup(null)
+            .setGroup(null)
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             active.notification.shortcutId?.let { shortcutId ->
@@ -68,31 +88,29 @@ class IncomingNotifier @Inject constructor(
             }
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            active.notification.bubbleMetadata?.let { bubbleMetadata ->
-                val bubbleIntent = bubbleMetadata.intent
-                val bubbleIcon = bubbleMetadata.icon
+        val bubbleIntent = bubbleMetadata.intent
+        val bubbleIcon = bubbleMetadata.icon
 
-                if (bubbleIntent != null && bubbleIcon != null) {
-                    val updatedBubble = Notification.BubbleMetadata.Builder(
-                        bubbleIntent,
-                        bubbleIcon
-                    )
-                        .setDesiredHeight(bubbleMetadata.desiredHeight)
-                        .setAutoExpandBubble(bubbleMetadata.autoExpandBubble)
-                        .setSuppressNotification(true)
+        if (bubbleIntent != null && bubbleIcon != null) {
+            val updatedBubble = Notification.BubbleMetadata.Builder(
+                bubbleIntent,
+                bubbleIcon
+            )
+                .setDesiredHeight(bubbleMetadata.desiredHeight)
+                .setAutoExpandBubble(bubbleMetadata.autoExpandBubble)
+                .setSuppressNotification(true)
 
-                    bubbleMetadata.deleteIntent?.let {
-                        updatedBubble.setDeleteIntent(it)
-                    }
-
-                    builder.setBubbleMetadata(updatedBubble.build())
-                }
+            bubbleMetadata.deleteIntent?.let {
+                updatedBubble.setDeleteIntent(it)
             }
+
+            builder.setBubbleMetadata(updatedBubble.build())
         }
 
         nm.notify(notifKey, builder.build())
         updateSummaryNotification(nm)
+    }
+
     }
         /**
      * @param notifKey    stable per-conversation key. Callers use `address.hashCode()` for
