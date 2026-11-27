@@ -226,7 +226,7 @@ class IncomingNotifier @Inject constructor(
             .setContentIntent(openIntent)
             .setAutoCancel(!hasBubble)
             .setGroup(PostmarkApplication.GROUP_KEY_SMS)
-            .setGroup(PostmarkApplication.GROUP_KEY_SMS)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_ALL)
 
         if (privacyMode) {
             // Privacy mode keeps the plain BigTextStyle: no Person, no avatar, and no
