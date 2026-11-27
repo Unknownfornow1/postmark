@@ -482,6 +482,7 @@ class IncomingNotifier @Inject constructor(
             .setStyle(inboxStyle)
             .setGroup(PostmarkApplication.GROUP_KEY_SMS)
             .setGroupSummary(true)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
             .setAutoCancel(true)
             .setContentIntent(openIntent)
             .build()
