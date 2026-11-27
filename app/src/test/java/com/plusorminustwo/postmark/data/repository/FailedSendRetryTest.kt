@@ -82,6 +82,8 @@ class FailedSendRetryTest {
         override suspend fun updateDeliveryStatus(messageId: Long, status: Int) {
             lastStatusUpdate = messageId to status
         }
+                override suspend fun getPendingProviderSmsIds(): List<Long> = emptyList()
+        override suspend fun updatePendingDeliveryStatus(messageId: Long, status: Int) = Unit
 
         override suspend fun updateDeliveryStatusWithTimestamp(messageId: Long, status: Int, deliveredAt: Long) {
             lastStatusUpdate = messageId to status
