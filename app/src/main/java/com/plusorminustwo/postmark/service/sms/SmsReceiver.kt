@@ -16,7 +16,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import com.plusorminustwo.postmark.data.repository.MessageRepository
 import com.plusorminustwo.postmark.service.smartreply.SmartReplyEngine
@@ -152,40 +151,54 @@ val notifKey = rawSender.hashCode()
 val allowDirectReply = !isGroupThread
 val senderIsKnownContact = !contactName.isNullOrBlank()
 
-                            val suggestedReplies = if (!privacyMode && !isGroupThread && threadId > 0L) {
-                                val conversationMessages = messageRepository.getByThread(threadId)
-                                val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
+                            val conversationForReplies = if (
+    !privacyMode && !isGroupThread && threadId > 0L
+) {
+    val conversationMessages = messageRepository.getByThread(threadId)
+    val lastMessage = conversationMessages.lastOrNull { it.body.isNotBlank() }
 
-                                if (lastMessage?.isSent == false) {
-                                    val conversation = SmartReplyGenerator.createConversation(conversationMessages)
+    if (lastMessage?.isSent == false) {
+        SmartReplyGenerator.createConversation(conversationMessages)
+    } else {
+        emptyList()
+    }
+} else {
+    emptyList()
+}
 
-                                    if (conversation.isNotEmpty()) {
-                                        withTimeoutOrNull(4_000L) {
-                                            smartReplyEngine.suggestRepliesIfAvailable(conversation)
-                                        }.orEmpty()
-                                    } else {
-                                        emptyList()
-                                    }
-                                } else {
-                                    emptyList()
-                                }
-                            } else {
-                                emptyList()
-                            }
+// Show the incoming message immediately, without waiting for the model.
+incomingNotifier.notify(
+    notifKey = notifKey,
+    threadId = threadId,
+    address = rawSender,
+    title = displayName,
+    body = body,
+    privacyMode = privacyMode,
+    allowDirectReply = allowDirectReply,
+    senderIsKnownContact = senderIsKnownContact
+)
 
-                            // Post once, with the message and any available Smart Replies together.
-                            incomingNotifier.notify(
-                                notifKey = notifKey,
-                                threadId = threadId,
-                                address = rawSender,
-                                title = displayName,
-                                body = body,
-                                privacyMode = privacyMode,
-                                allowDirectReply = allowDirectReply,
-                                senderIsKnownContact = senderIsKnownContact,
-                                suggestedReplies = suggestedReplies
-                            )
-                        }
+// Add Smart Replies when the model finishes generating them.
+if (conversationForReplies.isNotEmpty()) {
+    smartReplyEngine.suggestReplies(conversationForReplies) { suggestions ->
+        if (suggestions.isNotEmpty()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                incomingNotifier.notify(
+                    notifKey = notifKey,
+                    threadId = threadId,
+                    address = rawSender,
+                    title = displayName,
+                    body = body,
+                    privacyMode = privacyMode,
+                    allowDirectReply = allowDirectReply,
+                    senderIsKnownContact = senderIsKnownContact,
+                    suggestedReplies = suggestions,
+                    isUpdate = true
+                )
+            }
+        }
+    }
+}
                     } finally {
                         pendingResult.finish()
                     }
