@@ -238,13 +238,16 @@ class IncomingNotifier @Inject constructor(
         val hasBubble = !privacyMode &&
             threadId > 0L &&
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-        val existingIsBubble =
-    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
-        nm.activeNotifications
-            .firstOrNull { it.id == notifKey }
-            ?.notification
-            ?.let { (it.flags and Notification.FLAG_BUBBLE) != 0 }
-            == true
+                val existingIsBubble =
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                nm.activeNotifications
+                    .firstOrNull { it.id == notifKey }
+                    ?.notification
+                    ?.let { (it.flags and Notification.FLAG_BUBBLE) != 0 }
+                    ?: false
+            } else {
+                false
+            }
 
         val builder = NotificationCompat.Builder(context, PostmarkApplication.CHANNEL_INCOMING_SMS)
             .setSmallIcon(R.drawable.ic_notification)
