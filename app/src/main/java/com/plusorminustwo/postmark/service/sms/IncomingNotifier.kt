@@ -238,6 +238,13 @@ class IncomingNotifier @Inject constructor(
         val hasBubble = !privacyMode &&
             threadId > 0L &&
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+        val existingIsBubble =
+    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
+        nm.activeNotifications
+            .firstOrNull { it.id == notifKey }
+            ?.notification
+            ?.let { (it.flags and Notification.FLAG_BUBBLE) != 0 }
+            == true
 
         val builder = NotificationCompat.Builder(context, PostmarkApplication.CHANNEL_INCOMING_SMS)
             .setSmallIcon(R.drawable.ic_notification)
@@ -247,7 +254,9 @@ class IncomingNotifier @Inject constructor(
             .setOnlyAlertOnce(isUpdate)
             .setContentIntent(openIntent)
             .setAutoCancel(!hasBubble)
-            .setGroup(PostmarkApplication.GROUP_KEY_SMS)
+                        .setGroup(
+                if (existingIsBubble) null else PostmarkApplication.GROUP_KEY_SMS
+            )
             .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_ALL)
 
         if (privacyMode) {
