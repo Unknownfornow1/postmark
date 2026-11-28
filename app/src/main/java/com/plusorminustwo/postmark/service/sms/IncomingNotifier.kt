@@ -58,19 +58,24 @@ class IncomingNotifier @Inject constructor(
         val active = nm.activeNotifications.firstOrNull { it.id == notifKey }
             ?: return
 
-        val bubbleMetadata =
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                active.notification.bubbleMetadata
-            } else {
-                null
-            }
+        
+        val isBubble =
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
+                (active.notification.flags and Notification.FLAG_BUBBLE) != 0
 
-        // Without a bubble, dismiss the notification completely.
+        val bubbleMetadata = if (isBubble) {
+            active.notification.bubbleMetadata
+        } else {
+            null
+        }
+
+        // Without an actual system-approved bubble, dismiss the notification.
         if (bubbleMetadata == null) {
             nm.cancel(notifKey)
             updateSummaryNotification(nm)
             return
         }
+
 
         // Keep the bubble notification alive, but hide it from the shade.
         val builder = Notification.Builder.recoverBuilder(
